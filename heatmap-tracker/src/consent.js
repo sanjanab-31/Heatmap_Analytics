@@ -1,92 +1,141 @@
-const STORAGE_KEY = "heatmap_tracking_consent";
+const STORAGE_KEY = "heatmap_consent";
+const ACCEPTED_VALUE = "accepted";
+const DECLINED_VALUE = "declined";
+const BANNER_ID = "heatmap-consent-banner";
+const BANNER_TEXT = "We use anonymous analytics to improve this website. No personal data is collected.";
+
+function getStorage() {
+  try {
+    return window.localStorage;
+  } catch (error) {
+    return null;
+  }
+}
+
+function canUseDom() {
+  return typeof document !== "undefined" && typeof window !== "undefined";
+}
+
+function setConsent(value) {
+  const storage = getStorage();
+  if (!storage) {
+    return;
+  }
+
+  try {
+    if (value) {
+      storage.setItem(STORAGE_KEY, ACCEPTED_VALUE);
+    } else {
+      storage.setItem(STORAGE_KEY, DECLINED_VALUE);
+    }
+  } catch (error) {
+    // Ignore storage failures in restricted browser environments.
+  }
+}
 
 export function hasConsent() {
-  return localStorage.getItem(STORAGE_KEY) === "granted";
-}
-
-export function setConsent(value) {
-  localStorage.setItem(STORAGE_KEY, value ? "granted" : "denied");
-}
-
-export function getConsentState() {
-  const value = localStorage.getItem(STORAGE_KEY);
-  if (value === "granted" || value === "denied") {
-    return value;
+  const storage = getStorage();
+  if (!storage) {
+    return false;
   }
 
-  return "unknown";
+  try {
+    return storage.getItem(STORAGE_KEY) === ACCEPTED_VALUE;
+  } catch (error) {
+    return false;
+  }
 }
 
-export function requestConsent(options = {}) {
-  const state = getConsentState();
-  if (state !== "unknown") {
-    return Promise.resolve(state === "granted");
+export function clearConsent() {
+  const storage = getStorage();
+  if (!storage) {
+    return;
   }
 
-  const message = options.message || "Help us improve this site by allowing anonymous usage tracking.";
-  const allowLabel = options.allowLabel || "Allow";
-  const denyLabel = options.denyLabel || "No thanks";
+  try {
+    storage.removeItem(STORAGE_KEY);
+  } catch (error) {
+    // Ignore storage failures in restricted browser environments.
+  }
+}
 
-  return new Promise((resolve) => {
-    const banner = document.createElement("div");
-    banner.style.cssText = [
-      "position:fixed",
-      "left:16px",
-      "right:16px",
-      "bottom:16px",
-      "z-index:99999",
-      "padding:12px 14px",
-      "border-radius:10px",
-      "background:#111",
-      "color:#fff",
-      "display:flex",
-      "gap:12px",
-      "align-items:center",
-      "justify-content:space-between",
-      "font-family:system-ui,-apple-system,sans-serif",
-      "font-size:14px",
+export function showConsentBanner(onAccept, onDecline) {
+  if (!canUseDom()) {
+    return;
+  }
+
+  const existingBanner = document.getElementById(BANNER_ID);
+  if (existingBanner) {
+    existingBanner.remove();
+  }
+
+  const banner = document.createElement("div");
+  banner.id = BANNER_ID;
+  banner.setAttribute("role", "dialog");
+  banner.setAttribute("aria-live", "polite");
+  banner.style.cssText = [
+    "position:fixed",
+    "left:0",
+    "right:0",
+    "bottom:0",
+    "z-index:2147483647",
+    "display:flex",
+    "align-items:center",
+    "justify-content:space-between",
+    "gap:12px",
+    "padding:14px 16px",
+    "background:#111827",
+    "color:#f9fafb",
+    "border-top:1px solid rgba(255,255,255,0.12)",
+    "box-shadow:0 -8px 24px rgba(0,0,0,0.18)",
+    "font:14px/1.5 system-ui,-apple-system,BlinkMacSystemFont,Segoe UI,Roboto,sans-serif",
+  ].join(";");
+
+  const message = document.createElement("div");
+  message.textContent = BANNER_TEXT;
+  message.style.cssText = "flex:1 1 auto;min-width:0";
+
+  const actions = document.createElement("div");
+  actions.style.cssText = "display:flex;gap:8px;flex:0 0 auto";
+
+  const createButton = (label, primary) => {
+    const button = document.createElement("button");
+    button.type = "button";
+    button.textContent = label;
+    button.style.cssText = [
+      "border:0",
+      "border-radius:999px",
+      "padding:10px 14px",
+      "cursor:pointer",
+      "font:600 13px/1 system-ui,-apple-system,BlinkMacSystemFont,Segoe UI,Roboto,sans-serif",
+      primary ? "background:#22c55e;color:#052e16" : "background:#374151;color:#f9fafb",
     ].join(";");
+    return button;
+  };
 
-    const text = document.createElement("span");
-    text.textContent = message;
+  const acceptButton = createButton("Accept", true);
+  const declineButton = createButton("Decline", false);
 
-    const actions = document.createElement("div");
-    actions.style.cssText = "display:flex;gap:8px;flex-shrink:0";
-
-    const makeButton = (label, primary) => {
-      const button = document.createElement("button");
-      button.textContent = label;
-      button.style.cssText = [
-        "border:0",
-        "cursor:pointer",
-        "padding:8px 12px",
-        "border-radius:8px",
-        "font-weight:600",
-        primary ? "background:#2ea043;color:#fff" : "background:#30363d;color:#fff",
-      ].join(";");
-      return button;
-    };
-
-    const allowButton = makeButton(allowLabel, true);
-    const denyButton = makeButton(denyLabel, false);
-
-    allowButton.addEventListener("click", () => {
-      setConsent(true);
-      banner.remove();
-      resolve(true);
-    });
-
-    denyButton.addEventListener("click", () => {
-      setConsent(false);
-      banner.remove();
-      resolve(false);
-    });
-
-    actions.appendChild(denyButton);
-    actions.appendChild(allowButton);
-
-    banner.appendChild(text);
-    banner.appendChild(actions);
-    document.body.appendChild(banner);
+  acceptButton.addEventListener("click", () => {
+    setConsent(true);
+    banner.remove();
+    if (typeof onAccept === "function") {
+      onAccept();
+    }
   });
+
+  declineButton.addEventListener("click", () => {
+    setConsent(false);
+    banner.remove();
+    if (typeof onDecline === "function") {
+      onDecline();
+    }
+  });
+
+  actions.appendChild(declineButton);
+  actions.appendChild(acceptButton);
+  banner.appendChild(message);
+  banner.appendChild(actions);
+
+  (document.body || document.documentElement).appendChild(banner);
 }

@@ -1,69 +1,135 @@
-const DEFAULT_ENDPOINT = "/api/heatmap-events";
+let activeQueue = null;
+let activeEndpoint = "";
+let activeProjectId = "";
+let activeApiKey = "";
+let flushTimer = null;
+let isSending = false;
+let flushQueued = false;
+let originalQueuePush = null;
 
-export class EventSender {
-  constructor(options = {}) {
-    this.endpoint = options.endpoint || DEFAULT_ENDPOINT;
-    this.maxBatchSize = Number(options.maxBatchSize || 25);
-    this.flushIntervalMs = Number(options.flushIntervalMs || 5000);
-    this.headers = {
-      "Content-Type": "application/json",
-      ...(options.headers || {}),
-    };
+function buildHeaders() {
+  const headers = {
+    "Content-Type": "application/json",
+  };
 
-    this.queue = [];
-    this.timerId = null;
+  if (activeApiKey) {
+    headers["x-api-key"] = activeApiKey;
   }
 
-  start() {
-    if (this.timerId) {
-      return;
-    }
+  return headers;
+}
 
-    this.timerId = setInterval(() => {
-      this.flush();
-    }, this.flushIntervalMs);
+function buildPayload(events) {
+  return JSON.stringify({
+    projectId: activeProjectId,
+    events,
+  });
+}
+
+function sendWithBeacon(body) {
+  if (!navigator.sendBeacon) {
+    return false;
   }
 
-  stop() {
-    if (this.timerId) {
-      clearInterval(this.timerId);
-      this.timerId = null;
-    }
+  try {
+    return navigator.sendBeacon(activeEndpoint, new Blob([body], { type: "application/json" }));
+  } catch (error) {
+    return false;
+  }
+}
 
-    return this.flush();
+async function sendWithFetch(body) {
+  await fetch(activeEndpoint, {
+    method: "POST",
+    headers: buildHeaders(),
+    body,
+    keepalive: true,
+  });
+}
+
+async function flushInternal() {
+  if (isSending) {
+    flushQueued = true;
+    return;
   }
 
-  enqueue(event) {
-    this.queue.push(event);
-    if (this.queue.length >= this.maxBatchSize) {
-      return this.flush();
-    }
-
-    return Promise.resolve();
+  if (!activeQueue || activeQueue.length === 0 || !activeEndpoint) {
+    return;
   }
 
-  async flush() {
-    if (this.queue.length === 0) {
-      return;
+  isSending = true;
+  const events = activeQueue.splice(0, activeQueue.length);
+  const body = buildPayload(events);
+
+  try {
+    const beaconSent = !activeApiKey && sendWithBeacon(body);
+    if (!beaconSent) {
+      await sendWithFetch(body);
     }
+  } catch (error) {
+    console.log("heatmap-tracker flush failed", error);
+  } finally {
+    isSending = false;
 
-    const payload = this.queue.splice(0, this.maxBatchSize);
-    const body = JSON.stringify({ events: payload });
+    if (flushQueued || (activeQueue && activeQueue.length > 0)) {
+      flushQueued = false;
+      void flushInternal();
+    }
+  }
+}
 
-    // Prefer Beacon for page unload resilience.
-    if (navigator.sendBeacon) {
-      const blob = new Blob([body], { type: "application/json" });
-      const sent = navigator.sendBeacon(this.endpoint, blob);
-      if (sent) {
-        return;
+function scheduleFlush() {
+  if (flushTimer !== null) {
+    return;
+  }
+
+  flushTimer = window.setInterval(() => {
+    void flushInternal();
+  }, 5000);
+}
+
+export function startSender(queue, endpoint, projectId, apiKey = "") {
+  activeQueue = queue;
+  activeEndpoint = endpoint;
+  activeProjectId = projectId;
+  activeApiKey = apiKey;
+
+  if (!originalQueuePush) {
+    originalQueuePush = queue.push.bind(queue);
+    queue.push = (...events) => {
+      const result = originalQueuePush(...events);
+      if (queue.length > 20) {
+        void flushInternal();
       }
-    }
-
-    await fetch(this.endpoint, {
-      method: "POST",
-      headers: this.headers,
-      body,
-      keepalive: true,
-    });
+      return result;
+    };
   }
+
+  if (flushTimer === null) {
+    scheduleFlush();
+  }
+}
+
+export function stopSender() {
+  const queueRef = activeQueue;
+
+  if (flushTimer !== null) {
+    clearInterval(flushTimer);
+    flushTimer = null;
+  }
+
+  void flushInternal();
+
+  activeQueue = null;
+  activeEndpoint = "";
+  activeProjectId = "";
+  activeApiKey = "";
+  flushQueued = false;
+  isSending = false;
+
+  if (queueRef && originalQueuePush) {
+    queueRef.push = originalQueuePush;
+  }
+
+  originalQueuePush = null;
 }
