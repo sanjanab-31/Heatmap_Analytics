@@ -4,6 +4,9 @@ const cors = require("cors");
 const express = require("express");
 const mongoose = require("mongoose");
 
+const eventsRouter = require("./routes/events");
+const { eventIngestionLimiter } = require("./middleware/rateLimit");
+
 const app = express();
 const port = Number(process.env.PORT) || 3000;
 const mongoUri = process.env.MONGODB_URI;
@@ -54,6 +57,8 @@ app.get("/health", (_req, res) => {
 		timestamp: new Date()
 	});
 });
+
+app.use("/api/events", eventIngestionLimiter, eventsRouter);
 
 app.use((_req, res) => {
 	res.status(404).json({ error: "Route not found" });
