@@ -8,7 +8,8 @@ import {
   Settings, 
   Bell, 
   User,
-  Zap
+  Zap,
+  FolderOpen
 } from 'lucide-react';
 
 export default function Layout() {
@@ -31,6 +32,7 @@ export default function Layout() {
         {/* Navigation */}
         <nav className="flex flex-col gap-1.5 flex-1">
           <NavItem to="/" label="Dashboard" icon={<LayoutDashboard size={18} />} />
+          <NavItem to="/projects" label="Projects" icon={<FolderOpen size={18} />} />
           <NavItem to="/heatmaps" label="Heatmaps" icon={<Flame size={18} />} />
           <NavItem to="/analytics" label="Analytics" icon={<BarChart3 size={18} />} />
           <NavItem to="/recordings" label="Recordings" icon={<PlayCircle size={18} />} />

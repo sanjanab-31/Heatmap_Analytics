@@ -95,3 +95,62 @@ export async function fetchHeatmapData(params = {}, signal) {
 export async function fetchAnalytics(params = {}, signal) {
   return request('/api/analytics', params, signal ? { signal } : {});
 }
+
+// --- MOCK API FOR PROJECTS (Frontend Demonstration) ---
+let mockProjects = [
+  {
+    _id: "mock_1",
+    name: "Example SaaS App",
+    projectId: "proj_9f8e7d6c",
+    domain: "example.com",
+    apiKeyLastFour: "8x92",
+    status: "active",
+    totalClicks: 42850,
+    totalSessions: 1250,
+    lastEventAt: new Date(Date.now() - 1000 * 60 * 5).toISOString(),
+    createdAt: new Date(Date.now() - 1000 * 60 * 60 * 24 * 15).toISOString()
+  }
+];
+
+export async function fetchProjects(signal) {
+  return new Promise(resolve => setTimeout(() => resolve([...mockProjects]), 600));
+}
+
+export async function createProject({ name, domain }) {
+  return new Promise((resolve, reject) => setTimeout(() => {
+    if (mockProjects.some(p => p.domain === domain)) {
+      return reject(new Error("A project with this domain already exists."));
+    }
+    const rawApiKey = `pk_test_${Math.random().toString(36).substring(2, 15)}`;
+    const newProject = {
+      _id: `mock_${Date.now()}`,
+      name,
+      domain,
+      projectId: `proj_${Math.random().toString(36).substring(2, 10)}`,
+      apiKeyLastFour: rawApiKey.slice(-4),
+      status: "active",
+      totalClicks: 0,
+      totalSessions: 0,
+      lastEventAt: null,
+      createdAt: new Date().toISOString()
+    };
+    mockProjects = [newProject, ...mockProjects];
+    resolve({ ...newProject, rawApiKey });
+  }, 800));
+}
+
+export async function updateProjectStatus(id, status) {
+  return new Promise((resolve, reject) => setTimeout(() => {
+    const projectIndex = mockProjects.findIndex(p => p._id === id);
+    if (projectIndex === -1) return reject(new Error("Project not found"));
+    mockProjects[projectIndex] = { ...mockProjects[projectIndex], status };
+    resolve(mockProjects[projectIndex]);
+  }, 400));
+}
+
+export async function deleteProject(id) {
+  return new Promise(resolve => setTimeout(() => {
+    mockProjects = mockProjects.filter(p => p._id !== id);
+    resolve({ message: "Project deleted" });
+  }, 400));
+}
