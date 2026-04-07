@@ -9,6 +9,7 @@ import StatsCards  from '../components/StatsCards';
 import HeatmapView from '../components/HeatmapView';
 import ClickChart  from '../components/ClickChart';
 import ScrollChart from '../components/ScrollChart';
+import TopElements from '../components/TopElements';
 
 const DEFAULT_PROJECT = 'test-project-001';
 const DEFAULT_PAGE    = 'http://localhost/test';
@@ -46,6 +47,11 @@ export default function Dashboard() {
 
       {/* Stats Cards Section */}
       <StatsCards analytics={analytics} loading={anLoading} />
+
+      {/* Top Clicked Elements Section */}
+      <section className="flex flex-col gap-5">
+        <TopElements loading={anLoading} />
+      </section>
 
       {/* Main Grid: Heatmap & Click Velocity */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
