@@ -28,12 +28,12 @@ export default function ClickChart({ analytics, loading }) {
       {
         label: 'Interaction Volume',
         data: hourlyData,
-        backgroundColor: 'rgba(0, 102, 255, 0.65)',
+        backgroundColor: 'rgba(0, 102, 255, 0.4)',
         hoverBackgroundColor: '#0066FF',
-        borderRadius: 8,
+        borderRadius: 6,
         borderSkipped: false,
         barThickness: 'flex',
-        maxBarThickness: 16,
+        maxBarThickness: 14,
       },
     ],
   };
@@ -41,36 +41,53 @@ export default function ClickChart({ analytics, loading }) {
   const options = {
     responsive: true,
     maintainAspectRatio: false,
+    layout: {
+      padding: { top: 10, bottom: 0 }
+    },
     plugins: {
       legend: { display: false },
       tooltip: {
         backgroundColor: '#0f172a',
-        padding: 12,
-        titleFont: { size: 13, weight: 'bold' },
-        bodyFont: { size: 12 },
-        cornerRadius: 8,
+        padding: 14,
+        titleFont: { size: 13, weight: '900', family: "'Outfit', sans-serif" },
+        bodyFont: { size: 12, weight: '500', family: "'Inter', sans-serif" },
+        cornerRadius: 12,
         displayColors: false,
+        caretSize: 6,
+        callbacks: {
+          label: (context) => ` ${context.parsed.y} Recorded Clicks`
+        }
       },
     },
     scales: {
       x: {
         grid: { display: false },
-        ticks: { color: '#94a3b8', font: { size: 10, weight: '600' } },
+        ticks: { color: '#94a3b8', font: { size: 9, weight: '700' }, padding: 8 },
       },
       y: {
-        grid: { color: 'rgba(226, 232, 240, 0.4)', drawTicks: false },
-        ticks: { color: '#94a3b8', font: { size: 10 }, stepSize: 1 },
+        grid: { 
+          color: 'rgba(226, 232, 240, 0.5)', 
+          drawTicks: false,
+          borderDash: [5, 5]
+        },
+        ticks: { 
+          color: '#94a3b8', 
+          font: { size: 10, weight: '600' }, 
+          padding: 10,
+          callback: (value) => value.toLocaleString()
+        },
         beginAtZero: true,
+        border: { display: false }
       },
     },
   };
 
   return (
-    <div className="relative w-full h-[400px] flex items-center justify-center">
+    <div className="relative w-full h-[450px] flex items-center justify-center">
       {loading ? (
-        <div className="flex flex-col items-center gap-4 animate-pulse">
-           <div className="w-8 h-8 rounded-full border-t-luxury-blue border-transparent border-4 animate-spin" />
-           <p className="text-[10px] font-bold text-slate-300 uppercase tracking-widest">Compiling Hourly Trends...</p>
+        <div className="flex flex-col items-center gap-5">
+           <div className="w-10 h-10 rounded-2xl border-t-luxury-blue border-slate-100 border-4 animate-spin shadow-sm" />
+           <p className="text-[10px] font-black text-secondary uppercase tracking-[0.2em] animate-pulse">Compiling Engine...</p>
         </div>
       ) : (
         <Bar data={data} options={options} />

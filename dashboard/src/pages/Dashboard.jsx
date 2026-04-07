@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { useHeatmapData } from '../hooks/useHeatmapData';
 import { useAnalytics }   from '../hooks/useAnalytics';
 
@@ -21,147 +21,168 @@ export default function Dashboard() {
   const { data, total, loading: hmLoading, error: hmError } = useHeatmapData(filters);
   const { analytics,   loading: anLoading, error: anError } = useAnalytics(filters);
 
-  const anyError = hmError || anError;
+  // ── Render Helpers ──────────────────────────────────────────────────
 
-  return (
-    <div className="relative overflow-hidden w-full max-w-[1600px] mx-auto">
+  const Overview = () => (
+    <div className="flex flex-col gap-10 animate-fade-in">
       
-      {/* ── View Container (Animated Slider) ────────────────────────── */}
-      <div className={`flex transition-transform duration-700 ease-in-out ${
-        view === 'overview' ? 'translate-x-0' : '-translate-x-full'
-      }`}>
-        
-        {/* PAGE 1: OVERVIEW PAGE */}
-        <div className="min-w-full flex flex-col gap-8 pr-1">
-          
-          {/* Header Row */}
-          <div className="flex items-end justify-between">
-            <div className="flex flex-col gap-1">
-              <h1 className="text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-luxury-text via-slate-700 to-luxury-blue pb-1">
-                Executive Insights
-              </h1>
-              <p className="text-sm text-luxury-secondary font-medium flex items-center gap-2">
-                Real-time tracking activated <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
-              </p>
-            </div>
-            
-            <FilterBar
-              projectId={filters.projectId}
-              pageUrl={filters.pageUrl}
-              onFilter={(f) => setFilters(f)}
-            />
-          </div>
-
-          {/* Stats Grid */}
-          <StatsCards analytics={analytics} loading={anLoading} />
-
-          {/* Main Content Grid */}
-          <div className="grid grid-cols-12 gap-8">
-            
-            {/* Heatmap Section */}
-            <div className="col-span-7 flex flex-col gap-4">
-              <div className="flex items-center justify-between">
-                <div className="flex flex-col">
-                  <h3 className="text-lg font-bold text-luxury-text">Interactions Heatmap</h3>
-                  <p className="text-xs text-luxury-secondary font-medium">Visual density of user engagement</p>
-                </div>
-                <button 
-                  onClick={() => setView('heatmap')}
-                  className="px-4 py-1.5 text-xs font-bold text-luxury-blue bg-luxury-blue/10 hover:bg-luxury-blue hover:text-white rounded-lg transition-all"
-                >
-                  View Detailed Map →
-                </button>
-              </div>
-              <div className="glass-card p-6 h-[500px]">
-                <HeatmapView data={data} total={total} loading={hmLoading} error={hmError} />
-              </div>
-            </div>
-
-            {/* Click Chart Section */}
-            <div className="col-span-5 flex flex-col gap-4">
-              <div className="flex items-center justify-between">
-                <div className="flex flex-col">
-                  <h3 className="text-lg font-bold text-luxury-text">Click Velocity</h3>
-                  <p className="text-xs text-luxury-secondary font-medium">Hourly distribution of interactions</p>
-                </div>
-                <button 
-                  onClick={() => setView('charts')}
-                  className="px-4 py-1.5 text-xs font-bold text-luxury-blue bg-luxury-blue/10 hover:bg-luxury-blue hover:text-white rounded-lg transition-all"
-                >
-                  Full Report →
-                </button>
-              </div>
-              <div className="glass-card p-6 h-[500px]">
-                <ClickChart analytics={analytics} loading={anLoading} />
-              </div>
-            </div>
-          </div>
-
-          {/* Scroll Analysis */}
-          <div className="flex flex-col gap-4 mb-10">
-            <h3 className="text-lg font-bold text-luxury-text">Continuous Scroll Performance</h3>
-            <div className="glass-card p-6 min-h-[300px]">
-              <ScrollChart analytics={analytics} loading={anLoading} />
-            </div>
-          </div>
+      {/* Header Row */}
+      <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-6">
+        <div className="flex flex-col gap-2">
+          <h1 className="text-4xl font-bold font-heading text-gradient tracking-tight">
+            Executive Insights
+          </h1>
+          <p className="text-secondary font-medium flex items-center gap-2">
+            Real-time analytics engine <span className="w-1.5 h-1.5 rounded-full bg-blue-500 animate-pulse" />
+          </p>
         </div>
+        
+        <FilterBar
+          projectId={filters.projectId}
+          pageUrl={filters.pageUrl}
+          onFilter={(f) => setFilters(f)}
+        />
+      </div>
 
-        {/* PAGE 2: DETAILED VIEW (Currently just a placeholder for Heatmap Detail) */}
-        <div className="min-w-full flex flex-col gap-8 pl-1">
-          <div className="flex items-center gap-4">
-            <button 
-              onClick={() => setView('overview')}
-              className="w-10 h-10 rounded-full border border-slate-200 flex items-center justify-center hover:bg-slate-50 transition-colors"
-            >
-              ←
-            </button>
-            <div className="flex flex-col">
-              <h1 className="text-2xl font-bold text-luxury-text capitalize">Detailed {view} Analysis</h1>
-              <p className="text-sm text-luxury-secondary">Deep dive into project interaction metrics</p>
+      {/* Stats Cards Section */}
+      <StatsCards analytics={analytics} loading={anLoading} />
+
+      {/* Main Grid: Heatmap & Click Velocity */}
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+        
+        {/* Heatmap Preview Card */}
+        <section className="lg:col-span-7 flex flex-col gap-5">
+          <div className="flex items-end justify-between px-2">
+            <div className="flex flex-col gap-0.5">
+              <h3 className="text-xl font-bold text-luxury-text font-heading">Interaction Density</h3>
+              <p className="text-xs text-secondary font-medium">Visualizing high-engagement terminal points</p>
             </div>
+            <button 
+              onClick={() => setView('heatmap')}
+              className="px-4 py-2 text-xs font-bold text-luxury-blue bg-blue-50 hover:bg-luxury-blue hover:text-white rounded-xl transition-all duration-300 shadow-sm"
+            >
+              Expand view
+            </button>
           </div>
+          <div className="glass-card p-6 h-[550px] relative overflow-hidden">
+            <HeatmapView data={data} total={total} loading={hmLoading} error={hmError} />
+          </div>
+        </section>
 
-          <div className="glass-card p-10 min-h-[700px] flex items-center justify-center relative">
-            {view === 'heatmap' ? (
-              <div className="w-full h-full flex flex-col gap-6">
-                 <HeatmapView data={data} total={total} loading={hmLoading} error={hmError} largeHeight={600} />
-                 <div className="flex justify-center gap-10 mt-4">
-                    <LegendItem color="#0000FF" label="Cold Zone" />
-                    <LegendItem color="#00FF00" label="Active Zone" />
-                    <LegendItem color="#FFFF00" label="Warm Zone" />
-                    <LegendItem color="#FF0000" label="Hotspot" />
-                 </div>
-              </div>
-            ) : (
-              <div className="text-center">
-                <p className="text-xl font-bold text-slate-300">Detailed Chart View Coming Soon</p>
-                <p className="text-sm text-slate-400 mt-2">Extended reporting and raw data exports.</p>
-              </div>
-            )}
+        {/* Click Distribution Card */}
+        <section className="lg:col-span-5 flex flex-col gap-5">
+          <div className="flex items-end justify-between px-2">
+            <div className="flex flex-col gap-0.5">
+              <h3 className="text-xl font-bold text-luxury-text font-heading">Click Velocity</h3>
+              <p className="text-xs text-secondary font-medium">Hourly interactions & peak periods</p>
+            </div>
+            <button 
+              onClick={() => setView('charts')}
+              className="px-4 py-2 text-xs font-bold text-luxury-blue bg-blue-50 hover:bg-luxury-blue hover:text-white rounded-xl transition-all duration-300 shadow-sm"
+            >
+              Full report
+            </button>
           </div>
+          <div className="glass-card p-6 h-[550px] relative overflow-hidden">
+            <ClickChart analytics={analytics} loading={anLoading} />
+          </div>
+        </section>
+      </div>
+
+      {/* Scroll Analysis Section */}
+      <section className="flex flex-col gap-5 mb-12">
+        <div className="px-2">
+          <h3 className="text-xl font-bold text-luxury-text font-heading">Conversion Funnel & Scroll Depth</h3>
+          <p className="text-xs text-secondary font-medium">Tracking user retention across the page vertical</p>
+        </div>
+        <div className="glass-card p-8 min-h-[350px]">
+          <ScrollChart analytics={analytics} loading={anLoading} />
+        </div>
+      </section>
+
+      {/* Footer Branding */}
+      <footer className="pt-12 border-t border-border-soft flex items-center justify-between opacity-60">
+        <div className="text-[10px] uppercase font-bold tracking-widest text-secondary flex items-center gap-3">
+           <span className="w-1.5 h-1.5 rounded-full bg-slate-300" />
+           Precision Analytics • Heatwave Intelligence 3.0
+        </div>
+        <div className="text-[10px] uppercase font-bold tracking-widest text-secondary">
+          Data Integrity Verified: {new Date().toLocaleDateString()}
+        </div>
+      </footer>
+    </div>
+  );
+
+  const DetailedView = () => (
+    <div className="flex flex-col gap-8 animate-fade-in">
+      <div className="flex items-center gap-5">
+        <button 
+          onClick={() => setView('overview')}
+          className="w-12 h-12 rounded-2xl bg-white border border-border-soft flex items-center justify-center hover:bg-slate-50 transition-all duration-300 shadow-sm hover:shadow-md"
+        >
+          <span className="text-lg">←</span>
+        </button>
+        <div className="flex flex-col gap-0.5">
+          <h1 className="text-3xl font-bold font-heading text-luxury-text capitalize tracking-tight">
+            Detailed {view} Analysis
+          </h1>
+          <p className="text-sm font-medium text-secondary italic">Project: {filters.projectId} • {filters.pageUrl}</p>
         </div>
       </div>
 
-      {/* Footer */}
-      <footer className="mt-12 pt-8 border-t border-slate-200/60 flex items-center justify-between transition-opacity duration-300" 
-              style={{ opacity: view === 'overview' ? 1 : 0 }}>
-        <div className="text-[10px] uppercase font-bold tracking-widest text-slate-400 flex items-center gap-2">
-           <span className="w-1.5 h-1.5 rounded-full bg-slate-200" />
-           Powered by Heatwave Intelligence 3.0
-        </div>
-        <div className="text-[10px] uppercase font-bold tracking-widest text-slate-400">
-          Last Backup: {new Date().toLocaleTimeString()}
-        </div>
-      </footer>
+      <div className="glass-card p-10 min-h-[750px] flex flex-col relative">
+        {view === 'heatmap' ? (
+          <div className="w-full h-full flex flex-col gap-10">
+             <div className="flex-1 min-h-[600px]">
+                <HeatmapView data={data} total={total} loading={hmLoading} error={hmError} largeHeight={600} />
+             </div>
+             
+             {/* Legend & Stats Overlay */}
+             <div className="flex items-center justify-center gap-12 p-6 bg-slate-50/50 rounded-2xl border border-slate-100 self-center">
+                <LegendItem color="#0066FF" label="Low Interaction" />
+                <LegendItem color="#10b981" label="Active Region" />
+                <LegendItem color="#f59e0b" label="Engagement Zone" />
+                <LegendItem color="#ef4444" label="Extreme Hotspot" />
+             </div>
+          </div>
+        ) : (
+          <div className="flex-1 flex flex-col items-center justify-center text-center max-w-md mx-auto py-20">
+            <div className="w-20 h-20 bg-blue-50 rounded-3xl flex items-center justify-center text-3xl mb-6 grayscale opacity-50">
+              📊
+            </div>
+            <h4 className="text-2xl font-bold text-luxury-text font-heading mb-3">Extended Reporting</h4>
+            <p className="text-secondary leading-relaxed font-medium">
+              We are finalizing the deep-dive analytics engine for time-series comparisons and cohort analysis.
+            </p>
+            <button 
+              onClick={() => setView('overview')}
+              className="mt-8 btn-primary px-8"
+            >
+              Return to Insights
+            </button>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+
+  return (
+    <div className="w-full max-w-[1600px] mx-auto min-h-full">
+      {view === 'overview' ? <Overview /> : <DetailedView />}
     </div>
   );
 }
 
 function LegendItem({ color, label }) {
   return (
-    <div className="flex items-center gap-2">
-      <div className="w-3 h-3 rounded-full" style={{ background: color, boxShadow: `0 0 10px ${color}44` }} />
-      <span className="text-[10px] uppercase font-bold tracking-tighter text-slate-500">{label}</span>
+    <div className="flex items-center gap-2.5 group">
+      <div className="relative">
+         <div className="w-3 h-3 rounded-full" style={{ background: color }} />
+         <div className="absolute inset-0 w-3 h-3 rounded-full animate-ping opacity-20" style={{ background: color }} />
+      </div>
+      <span className="text-[10px] uppercase font-bold tracking-widest text-secondary group-hover:text-luxury-text transition-colors">
+        {label}
+      </span>
     </div>
   );
 }

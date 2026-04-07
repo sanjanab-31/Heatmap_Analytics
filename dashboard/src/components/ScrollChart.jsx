@@ -30,8 +30,9 @@ export default function ScrollChart({ analytics, loading }) {
         data: scrollData,
         backgroundColor: 'rgba(0, 102, 255, 0.4)',
         hoverBackgroundColor: '#0066FF',
-        borderRadius: 4,
-        barThickness: 32,
+        borderRadius: 12,
+        barThickness: 40,
+        maxBarThickness: 50,
       },
     ],
   };
@@ -44,34 +45,40 @@ export default function ScrollChart({ analytics, loading }) {
       legend: { display: false },
       tooltip: {
         backgroundColor: '#0f172a',
-        padding: 10,
-        titleFont: { weight: 'bold' },
-        cornerRadius: 4,
+        padding: 14,
+        titleFont: { size: 12, weight: '900', family: "'Outfit', sans-serif" },
+        bodyFont: { size: 11, weight: '500', family: "'Inter', sans-serif" },
+        cornerRadius: 12,
+        displayColors: false,
+        callbacks: {
+          label: (context) => ` ${context.parsed.x}% Retention`
+        }
       },
     },
     scales: {
       x: {
-        grid: { color: 'rgba(226, 232, 240, 0.4)' },
-        ticks: { color: '#94a3b8', font: { size: 10 } },
+        grid: { color: 'rgba(226, 232, 240, 0.5)', drawTicks: false },
+        ticks: { color: '#94a3b8', font: { size: 9, weight: '700' }, padding: 8 },
         min: 0,
         max: 100,
-        title: { display: true, text: 'Completion %', color: '#cbd5e1', font: { size: 9, weight: '700' } },
+        title: { display: true, text: 'VISITOR COMPLETION %', color: '#94a3b8', font: { size: 9, weight: '900', family: "'Outfit', sans-serif" }, padding: 10 },
       },
       y: {
         grid: { display: false },
-        ticks: { color: '#0f172a', font: { size: 11, weight: '600' } },
+        ticks: { color: '#0f172a', font: { size: 11, weight: '700', family: "'Outfit', sans-serif" }, padding: 12 },
+        border: { display: false }
       },
     },
   };
 
   return (
-    <div className="relative w-full h-[280px] flex items-center justify-center">
+    <div className="relative w-full h-[320px] flex items-center justify-center">
       {loading ? (
-        <div className="flex items-center gap-2">
-           <div className="w-10 h-2 bg-slate-100 rounded-full overflow-hidden">
-              <div className="w-1/2 h-full bg-luxury-blue animate-[loading_1.5s_infinite]" />
+        <div className="flex flex-col items-center gap-4">
+           <div className="w-48 h-1.5 bg-slate-50 border border-slate-100 rounded-full overflow-hidden">
+              <div className="w-1/2 h-full bg-luxury-blue animate-[loading_2s_infinite]" />
            </div>
-           <span className="text-[10px] font-bold text-slate-300 uppercase tracking-widest">Profiling Funnel...</span>
+           <span className="text-[10px] font-black text-secondary uppercase tracking-[0.2em]">Profiling Funnel Dynamics...</span>
         </div>
       ) : (
         <Bar data={data} options={options} />
