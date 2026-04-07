@@ -5,7 +5,8 @@ const express = require("express");
 const mongoose = require("mongoose");
 
 const eventsRouter = require("./routes/events");
-const { eventIngestionLimiter } = require("./middleware/rateLimit");
+const heatmapRouter = require("./routes/heatmap");
+const { eventIngestionLimiter, getRoutesLimiter } = require("./middleware/rateLimit");
 
 const app = express();
 const port = Number(process.env.PORT) || 3000;
@@ -59,6 +60,7 @@ app.get("/health", (_req, res) => {
 });
 
 app.use("/api/events", eventIngestionLimiter, eventsRouter);
+app.use("/api/heatmap", getRoutesLimiter, heatmapRouter);
 
 app.use((_req, res) => {
 	res.status(404).json({ error: "Route not found" });
