@@ -1,23 +1,23 @@
-import terser from "@rollup/plugin-terser";
+const terser = require("@rollup/plugin-terser");
 
-const isProduction = process.env.NODE_ENV === "production";
-
-export default {
+module.exports = {
   input: "src/index.js",
   output: [
     {
-      file: "dist/heatmap-tracker.js",
-      format: "iife",
-      name: "HeatmapTracker",
-      sourcemap: true,
+      file: "dist/tracker.esm.js",
+      format: "esm",
     },
     {
-      file: "dist/heatmap-tracker.min.js",
+      file: "dist/tracker.cjs.js",
+      format: "cjs",
+      exports: "named",
+    },
+    {
+      file: "dist/tracker.min.js",
       format: "iife",
       name: "HeatmapTracker",
-      sourcemap: true,
       plugins: [terser()],
     },
   ],
-  treeshake: isProduction,
+  treeshake: true,
 };
