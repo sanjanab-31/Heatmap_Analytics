@@ -1,0 +1,199 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Heatmap Tracker Test Page</title>
+    <style>
+      :root {
+        color-scheme: light;
+        --bg: #f5f1e8;
+        --ink: #111827;
+        --panel: rgba(255, 255, 255, 0.9);
+        --accent: #f97316;
+        --accent-2: #0f766e;
+      }
+
+      html,
+      body {
+        margin: 0;
+        min-height: 100%;
+        font-family: Georgia, "Times New Roman", serif;
+        color: var(--ink);
+        background:
+          radial-gradient(circle at top left, rgba(249, 115, 22, 0.18), transparent 32%),
+          radial-gradient(circle at top right, rgba(15, 118, 110, 0.16), transparent 28%),
+          linear-gradient(180deg, #fffaf2, var(--bg));
+      }
+
+      body {
+        min-height: 2400px;
+        padding: 32px 20px 120px;
+        box-sizing: border-box;
+      }
+
+      .shell {
+        max-width: 1100px;
+        margin: 0 auto;
+      }
+
+      h1 {
+        margin: 0 0 12px;
+        font-size: clamp(2rem, 5vw, 4rem);
+        letter-spacing: -0.04em;
+      }
+
+      p {
+        max-width: 58rem;
+        line-height: 1.6;
+        font-size: 1.02rem;
+      }
+
+      .grid {
+        position: relative;
+        min-height: 2000px;
+        margin-top: 28px;
+        border: 1px solid rgba(17, 24, 39, 0.08);
+        border-radius: 28px;
+        background: linear-gradient(180deg, rgba(255, 255, 255, 0.72), rgba(255, 255, 255, 0.35));
+        backdrop-filter: blur(8px);
+        overflow: hidden;
+      }
+
+      .button-card {
+        position: absolute;
+        width: min(260px, calc(100% - 32px));
+      }
+
+      .button-card button {
+        width: 100%;
+        border: 0;
+        border-radius: 18px;
+        padding: 18px 20px;
+        font: 700 16px/1.2 Georgia, "Times New Roman", serif;
+        color: white;
+        cursor: pointer;
+        box-shadow: 0 18px 36px rgba(17, 24, 39, 0.18);
+      }
+
+      .button-card span {
+        display: block;
+        margin-top: 10px;
+        font-size: 0.95rem;
+        line-height: 1.45;
+      }
+
+      .a { top: 90px; left: 32px; }
+      .b { top: 260px; right: 40px; }
+      .c { top: 760px; left: 18%; }
+      .d { top: 1240px; right: 18%; }
+      .e { top: 1700px; left: 50%; transform: translateX(-50%); }
+
+      .a button { background: linear-gradient(135deg, #ea580c, #fb923c); }
+      .b button { background: linear-gradient(135deg, #0f766e, #14b8a6); }
+      .c button { background: linear-gradient(135deg, #1d4ed8, #60a5fa); }
+      .d button { background: linear-gradient(135deg, #7c3aed, #a78bfa); }
+      .e button { background: linear-gradient(135deg, #111827, #4b5563); }
+
+      .footer-note {
+        margin: 28px 0 0;
+        font-size: 0.95rem;
+        opacity: 0.8;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="shell">
+      <h1>Heatmap Tracker Test Page</h1>
+      <p>
+        Use this page to verify click and scroll capture. Open the browser console to inspect the logged payloads
+        and scroll through the page to trigger throttled events.
+      </p>
+
+      <div class="grid">
+        <div class="button-card a">
+          <button type="button">Button One</button>
+          <span>Top-left target for click tracking.</span>
+        </div>
+        <div class="button-card b">
+          <button type="button">Button Two</button>
+          <span>Top-right target for click tracking.</span>
+        </div>
+        <div class="button-card c">
+          <button type="button">Button Three</button>
+          <span>Middle-left target for click tracking.</span>
+        </div>
+        <div class="button-card d">
+          <button type="button">Button Four</button>
+          <span>Lower-right target for click tracking.</span>
+        </div>
+        <div class="button-card e">
+          <button type="button">Button Five</button>
+          <span>Bottom-center target for click tracking.</span>
+        </div>
+      </div>
+
+      <p class="footer-note">Scroll to the bottom to exercise the 500 ms scroll throttle.</p>
+    </div>
+
+    <script>
+      (function () {
+        const originalFetch = window.fetch;
+
+        function logBody(prefix, body) {
+          if (body && typeof body.text === "function") {
+            body.text().then(function (text) {
+              console.log(prefix, JSON.parse(text));
+            });
+            return;
+          }
+
+          if (typeof body === "string") {
+            try {
+              console.log(prefix, JSON.parse(body));
+            } catch (error) {
+              console.log(prefix, body);
+            }
+            return;
+          }
+
+          console.log(prefix, body);
+        }
+
+        navigator.sendBeacon = function (url, body) {
+          logBody("sendBeacon payload", body);
+          return true;
+        };
+
+        window.fetch = function (url, options) {
+          console.log("fetch request", url, options && options.headers);
+          if (options && "body" in options) {
+            logBody("fetch payload", options.body);
+          }
+          return Promise.resolve({
+            ok: true,
+            status: 200,
+            json: function () {
+              return Promise.resolve({});
+            },
+            text: function () {
+              return Promise.resolve("{}");
+            },
+          });
+        };
+
+        window.addEventListener("beforeunload", function () {
+          window.fetch = originalFetch;
+        });
+      })();
+    </script>
+    <script src="../dist/tracker.min.js"></script>
+    <script>
+      HeatmapTracker.init({
+        apiKey: "test-key",
+        endpoint: "http://localhost:3000/api/events",
+        projectId: "test-project-001",
+      });
+    </script>
+  </body>
+</html>
