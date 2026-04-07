@@ -4,9 +4,14 @@ const cors = require("cors");
 const express = require("express");
 const mongoose = require("mongoose");
 
+const eventsRouter = require("./routes/events");
+const heatmapRouter = require("./routes/heatmap");
+const analyticsRouter = require("./routes/analytics");
+const { eventIngestionLimiter, getRoutesLimiter } = require("./middleware/rateLimit");
+
 const app = express();
 const port = Number(process.env.PORT) || 3000;
-const mongoUri = process.env.MONGODB_URI;
+const mongoUri = process.env.MONGODB_URI || "mongodb://127.0.0.1:27017/heatmap";
 
 const allowedOrigins = (process.env.ALLOWED_ORIGINS || "")
 	.split(",")
@@ -54,6 +59,10 @@ app.get("/health", (_req, res) => {
 		timestamp: new Date()
 	});
 });
+
+app.use("/api/events", eventIngestionLimiter, eventsRouter);
+app.use("/api/heatmap", getRoutesLimiter, heatmapRouter);
+app.use("/api/analytics", getRoutesLimiter, analyticsRouter);
 
 app.use((_req, res) => {
 	res.status(404).json({ error: "Route not found" });
