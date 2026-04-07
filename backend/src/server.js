@@ -11,7 +11,7 @@ const { eventIngestionLimiter, getRoutesLimiter } = require("./middleware/rateLi
 
 const app = express();
 const port = Number(process.env.PORT) || 3000;
-const mongoUri = process.env.MONGODB_URI;
+const mongoUri = process.env.MONGODB_URI || "mongodb://127.0.0.1:27017/heatmap";
 
 const allowedOrigins = (process.env.ALLOWED_ORIGINS || "")
 	.split(",")
