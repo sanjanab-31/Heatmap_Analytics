@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { NavLink, Outlet } from 'react-router-dom';
 import { 
   LayoutDashboard, 
@@ -9,7 +9,9 @@ import {
   Bell, 
   User,
   Zap,
-  FolderOpen
+  FolderOpen,
+  Users,
+  Clock
 } from 'lucide-react';
 
 export default function Layout() {
@@ -58,11 +60,21 @@ export default function Layout() {
         
         {/* Top Header - Glassmorphism */}
         <header className="h-20 bg-white/70 backdrop-blur-xl border-b border-border-soft px-10 flex items-center justify-between shrink-0 z-40">
-          <div className="flex flex-col">
-            <h2 className="text-sm font-black text-luxury-text uppercase tracking-widest">Platform Overview</h2>
-            <div className="flex items-center gap-2 mt-0.5">
-              <span className="w-2 h-2 rounded-full bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.4)] animate-pulse" />
-              <p className="text-xs text-secondary font-medium">All systems operational</p>
+          <div className="flex items-center">
+            <div className="flex flex-col">
+              <h2 className="text-sm font-black text-luxury-text uppercase tracking-widest">Platform Overview</h2>
+              <div className="flex items-center gap-2 mt-0.5">
+                <span className="w-2 h-2 rounded-full bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.4)] animate-pulse" />
+                <p className="text-xs text-secondary font-medium">All systems operational</p>
+              </div>
+            </div>
+            
+            {/* Divider */}
+            <div className="h-8 w-[1px] bg-slate-200 mx-6 hidden md:block" />
+            
+            {/* Real-time Indicator */}
+            <div className="hidden md:block">
+              <RealTimeStatus />
             </div>
           </div>
           
@@ -121,5 +133,68 @@ function NavItem({ to, label, icon }) {
         </>
       )}
     </NavLink>
+  );
+}
+
+function RealTimeStatus() {
+  const [usersOnline, setUsersOnline] = useState(142);
+  const [secondsSinceEvent, setSecondsSinceEvent] = useState(2);
+
+  useEffect(() => {
+    // Simulate real-time user fluctuations
+    const userInterval = setInterval(() => {
+      setUsersOnline(prev => {
+        const change = Math.floor(Math.random() * 5) - 2; // fluctuate between -2 and +2
+        return Math.max(12, prev + change);
+      });
+    }, 3500);
+
+    // Simulate ticking clock for last event received
+    const timeInterval = setInterval(() => {
+      setSecondsSinceEvent(prev => {
+        if (Math.random() > 0.85) return 0; // Randomly reset, simulating a new event incoming
+        return prev + 1;
+      });
+    }, 1000);
+
+    return () => {
+      clearInterval(userInterval);
+      clearInterval(timeInterval);
+    };
+  }, []);
+
+  return (
+    <div className="flex items-center gap-6 animate-fade-in">
+      {/* Tracking Status Badge */}
+      <div className="flex items-center gap-2 bg-emerald-50 text-emerald-600 px-3 py-1.5 rounded-full border border-emerald-100 shadow-[0_0_15px_rgba(16,185,129,0.15)] relative overflow-hidden group">
+        <div className="absolute inset-0 translate-x-[-100%] group-hover:animate-[shimmer_1.5s_infinite] bg-gradient-to-r from-transparent via-white/40 to-transparent z-0" />
+        <span className="w-2 h-2 rounded-full bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.8)] animate-pulse relative z-10" />
+        <span className="text-[10px] font-black uppercase tracking-widest relative z-10">Live Tracking</span>
+      </div>
+      
+      {/* Active Users */}
+      <div className="flex items-center gap-2.5">
+        <div className="w-8 h-8 rounded-lg bg-blue-50 flex items-center justify-center text-luxury-blue border border-blue-100/50 relative overflow-hidden">
+           <Users size={14} className="relative z-10" />
+        </div>
+        <div className="flex flex-col">
+          <span className="text-[9px] text-slate-400 font-black uppercase tracking-widest leading-none mb-0.5">Active Users</span>
+          <span className="text-sm font-black text-luxury-text leading-none">{usersOnline.toLocaleString()}</span>
+        </div>
+      </div>
+      
+      {/* Last Event */}
+      <div className="flex items-center gap-2.5">
+        <div className="w-8 h-8 rounded-lg bg-orange-50 flex items-center justify-center text-orange-500 border border-orange-100/50">
+           <Clock size={14} />
+        </div>
+        <div className="flex flex-col">
+          <span className="text-[9px] text-slate-400 font-black uppercase tracking-widest leading-none mb-0.5">Last Event</span>
+          <span className="text-sm font-black text-luxury-text leading-none transition-all duration-300">
+             {secondsSinceEvent === 0 ? <span className="text-emerald-500">Just now</span> : <span className="text-slate-600 font-bold">{secondsSinceEvent}s ago</span>}
+          </span>
+        </div>
+      </div>
+    </div>
   );
 }
