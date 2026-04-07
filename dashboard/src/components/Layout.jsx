@@ -1,6 +1,7 @@
 import React from 'react';
+import { NavLink, Outlet } from 'react-router-dom';
 
-export default function Layout({ children }) {
+export default function Layout() {
   return (
     <div className="flex h-screen bg-luxury-bg font-body antialiased overflow-hidden">
       
@@ -8,22 +9,22 @@ export default function Layout({ children }) {
       <aside className="hidden lg:flex flex-col w-72 h-full bg-white border-r border-border-soft p-8 z-50 shrink-0">
         
         {/* Brand/Logo */}
-        <div className="flex items-center gap-3 mb-10 group cursor-pointer">
+        <NavLink to="/" className="flex items-center gap-3 mb-10 group cursor-pointer no-underline">
           <div className="w-10 h-10 bg-gradient-to-br from-luxury-blue to-blue-700 rounded-xl flex items-center justify-center text-white text-xl font-bold shadow-lg shadow-luxury-blue/20 group-hover:scale-105 transition-all duration-300">
             H
           </div>
           <span className="text-xl font-bold font-heading text-luxury-text tracking-tight group-hover:text-luxury-blue transition-colors">
             Heatwave
           </span>
-        </div>
+        </NavLink>
 
         {/* Navigation */}
         <nav className="flex flex-col gap-1.5 flex-1">
-          <NavItem active label="Dashboard" icon={<LayoutIcon size={20} />} />
-          <NavItem label="Heatmaps" icon={<MapIcon size={20} />} />
-          <NavItem label="Analytics" icon={<ChartIcon size={20} />} />
-          <NavItem label="Recordings" icon={<VideoIcon size={20} />} />
-          <NavItem label="Settings" icon={<SettingsIcon size={20} />} />
+          <NavItem to="/" label="Dashboard" icon={<LayoutIcon size={20} />} />
+          <NavItem to="/heatmaps" label="Heatmaps" icon={<MapIcon size={20} />} />
+          <NavItem to="/analytics" label="Analytics" icon={<ChartIcon size={20} />} />
+          <NavItem to="/recordings" label="Recordings" icon={<VideoIcon size={20} />} />
+          <NavItem to="/settings" label="Settings" icon={<SettingsIcon size={20} />} />
         </nav>
 
         {/* Bottom Card - Premium Upgrade */}
@@ -76,7 +77,7 @@ export default function Layout({ children }) {
         {/* Page Content - Scroll Holder */}
         <div className="flex-1 overflow-x-hidden overflow-y-auto premium-gradient custom-scrollbar relative">
            <div className="p-10 max-w-[1600px] mx-auto animate-fade-in">
-              {children}
+              <Outlet />
            </div>
         </div>
       </main>
@@ -84,23 +85,30 @@ export default function Layout({ children }) {
   );
 }
 
-function NavItem({ label, icon, active = false }) {
+function NavItem({ to, label, icon }) {
   return (
-    <div className={`flex items-center gap-3 px-4 py-3 rounded-xl cursor-pointer transition-all duration-300 group ${
-      active 
-        ? 'bg-luxury-blue/10 text-luxury-blue shadow-[inset_0_0_0_1px_rgba(0,102,255,0.1)]' 
-        : 'text-secondary hover:bg-slate-50 hover:text-luxury-text'
-    }`}>
-      <span className={`transition-all duration-300 ${active ? 'scale-110 text-luxury-blue' : 'group-hover:scale-110 group-hover:text-luxury-text'}`}>
-        {icon}
-      </span>
-      <span className={`text-sm font-semibold tracking-tight ${active ? 'font-bold' : ''}`}>
-        {label}
-      </span>
-      {active && (
-        <div className="ml-auto w-1.5 h-1.5 rounded-full bg-luxury-blue shadow-[0_0_8px_rgba(0,102,255,0.4)]" />
+    <NavLink 
+      to={to} 
+      className={({ isActive }) => `flex items-center gap-3 px-4 py-3 rounded-xl cursor-pointer transition-all duration-300 group no-underline ${
+        isActive 
+          ? 'bg-luxury-blue/10 text-luxury-blue shadow-[inset_0_0_0_1px_rgba(0,102,255,0.1)]' 
+          : 'text-secondary hover:bg-slate-50 hover:text-luxury-text'
+      }`}
+    >
+      {({ isActive }) => (
+        <>
+          <span className={`transition-all duration-300 ${isActive ? 'scale-110 text-luxury-blue' : 'group-hover:scale-110 group-hover:text-luxury-text'}`}>
+            {icon}
+          </span>
+          <span className={`text-sm font-semibold tracking-tight ${isActive ? 'font-bold' : ''}`}>
+            {label}
+          </span>
+          {isActive && (
+            <div className="ml-auto w-1.5 h-1.5 rounded-full bg-luxury-blue shadow-[0_0_8px_rgba(0,102,255,0.4)]" />
+          )}
+        </>
       )}
-    </div>
+    </NavLink>
   );
 }
 
