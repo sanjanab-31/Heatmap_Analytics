@@ -1,4 +1,5 @@
 import React from 'react';
+import { Video } from 'lucide-react';
 
 export default function Recordings() {
   return (
@@ -11,8 +12,8 @@ export default function Recordings() {
       </div>
 
       <div className="glass-card p-20 flex flex-col items-center justify-center text-center gap-10 bg-white/40">
-        <div className="w-24 h-24 bg-blue-50 rounded-[2rem] flex items-center justify-center text-5xl grayscale opacity-30 shadow-inner">
-          🎥
+        <div className="w-24 h-24 bg-white border border-slate-100 rounded-[2rem] flex items-center justify-center text-5xl text-slate-300 shadow-sm transition-transform hover:scale-105 duration-500">
+          <Video size={48} />
         </div>
         
         <div className="flex flex-col gap-3 max-w-xl">

@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useHeatmapData } from '../hooks/useHeatmapData';
 import { useAnalytics }   from '../hooks/useAnalytics';
+import { ArrowRight } from 'lucide-react';
 
 import FilterBar   from '../components/FilterBar';
 import StatsCards  from '../components/StatsCards';
@@ -58,9 +59,10 @@ export default function Dashboard() {
             </div>
             <button 
               onClick={() => navigate('/heatmaps')}
-              className="px-4 py-2 text-xs font-bold text-luxury-blue bg-blue-50 hover:bg-luxury-blue hover:text-white rounded-xl transition-all duration-300 shadow-sm"
+              className="px-4 py-2 text-xs font-bold text-luxury-blue bg-blue-50 hover:bg-luxury-blue hover:text-white rounded-xl transition-all duration-300 shadow-sm flex items-center gap-2 group"
             >
-              Expand view
+              <span>Expand view</span>
+              <ArrowRight size={14} className="group-hover:translate-x-1 transition-transform" />
             </button>
           </div>
           <div className="glass-card p-6 h-[550px] relative overflow-hidden">
@@ -77,9 +79,10 @@ export default function Dashboard() {
             </div>
             <button 
               onClick={() => navigate('/analytics')}
-              className="px-4 py-2 text-xs font-bold text-luxury-blue bg-blue-50 hover:bg-luxury-blue hover:text-white rounded-xl transition-all duration-300 shadow-sm"
+              className="px-4 py-2 text-xs font-bold text-luxury-blue bg-blue-50 hover:bg-luxury-blue hover:text-white rounded-xl transition-all duration-300 shadow-sm flex items-center gap-2 group"
             >
-              Full report
+              <span>Full report</span>
+              <ArrowRight size={14} className="group-hover:translate-x-1 transition-transform" />
             </button>
           </div>
           <div className="glass-card p-6 h-[550px] relative overflow-hidden">
@@ -101,12 +104,12 @@ export default function Dashboard() {
 
       {/* Footer Branding */}
       <footer className="pt-12 border-t border-border-soft flex items-center justify-between opacity-60">
-        <div className="text-[10px] uppercase font-bold tracking-widest text-secondary flex items-center gap-3">
+        <div className="text-[10px] uppercase font-black tracking-widest text-secondary flex items-center gap-3">
            <span className="w-1.5 h-1.5 rounded-full bg-slate-300" />
            Precision Analytics • Heatwave Intelligence 3.0
         </div>
-        <div className="text-[10px] uppercase font-bold tracking-widest text-secondary">
-          Data Integrity Verified: {new Date().toLocaleDateString()}
+        <div className="text-[10px] uppercase font-black tracking-widest text-secondary text-right">
+          Data Integrity Verified<br/>{new Date().toLocaleDateString(undefined, { dateStyle: 'long' })}
         </div>
       </footer>
     </div>

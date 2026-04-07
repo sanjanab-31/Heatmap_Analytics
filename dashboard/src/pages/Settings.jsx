@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { ShieldCheck, Key, Trophy } from 'lucide-react';
 
 export default function Settings() {
   return (
@@ -24,7 +25,10 @@ export default function Settings() {
              <div className="flex flex-col gap-4">
                 <div className="p-4 bg-slate-50 border border-slate-200 rounded-2xl flex items-center justify-between">
                    <div className="flex flex-col gap-1">
-                      <span className="text-xs font-black text-secondary uppercase tracking-widest">Public API Key</span>
+                      <div className="flex items-center gap-2 mb-1">
+                         <Key size={12} className="text-luxury-blue" />
+                         <span className="text-xs font-black text-secondary uppercase tracking-widest">Public API Key</span>
+                      </div>
                       <code className="text-sm font-mono text-luxury-blue">************************8fb4</code>
                    </div>
                    <button className="text-xs font-bold text-luxury-blue bg-white border border-slate-200 px-4 py-2 rounded-xl shadow-sm hover:shadow transition-all">Copy Key</button>
@@ -34,17 +38,23 @@ export default function Settings() {
         </div>
 
         <div className="lg:col-span-1 flex flex-col gap-8">
-           <div className="glass-card p-8 bg-gradient-to-br from-luxury-blue to-blue-700 text-white flex flex-col gap-6 border-none">
-              <span className="w-12 h-12 bg-white/20 rounded-2xl flex items-center justify-center text-2xl">🏆</span>
+           <div className="glass-card p-8 bg-gradient-to-br from-luxury-blue to-blue-700 text-white flex flex-col gap-6 border-none overflow-hidden relative group">
+              <div className="absolute -right-4 -top-4 w-24 h-24 bg-white/10 rounded-full blur-2xl group-hover:scale-150 transition-transform duration-700" />
+              <div className="w-12 h-12 bg-white/20 rounded-2xl flex items-center justify-center shadow-inner">
+                 <Trophy size={24} />
+              </div>
               <div className="flex flex-col gap-2">
                  <h4 className="text-xl font-bold font-heading tracking-tight">Premium Support</h4>
                  <p className="text-sm text-white/80 leading-relaxed font-medium">As an Enterprise Elite customer, you have access to 24/7 dedicated account management.</p>
               </div>
-              <button className="w-full bg-white text-luxury-blue py-3 rounded-xl font-bold font-heading text-sm shadow-xl shadow-blue-900/20 active:scale-95 transition-transform">Contact Manager</button>
+              <button className="w-full bg-white text-luxury-blue py-3 rounded-xl font-bold font-heading text-sm shadow-xl shadow-blue-900/20 active:scale-95 transition-transform z-10">Contact Manager</button>
            </div>
 
            <div className="glass-card p-6 border-slate-200 flex flex-col gap-4">
-              <h5 className="text-xs font-black text-secondary uppercase tracking-widest">Security Audit</h5>
+              <div className="flex items-center justify-between">
+                 <h5 className="text-[10px] font-black text-secondary uppercase tracking-widest">Security Audit</h5>
+                 <ShieldCheck size={14} className="text-emerald-500" />
+              </div>
               <div className="flex items-center gap-3">
                  <div className="w-2 h-2 rounded-full bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.5)]" />
                  <span className="text-sm font-bold text-luxury-text">System scans completed</span>

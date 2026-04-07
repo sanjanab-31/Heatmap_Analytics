@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { ArrowLeft } from 'lucide-react';
 import { useHeatmapData } from '../hooks/useHeatmapData';
 import HeatmapView from '../components/HeatmapView';
 import FilterBar from '../components/FilterBar';
@@ -22,9 +23,9 @@ export default function Heatmaps() {
         <div className="flex items-center gap-5">
           <button 
             onClick={() => navigate('/')}
-            className="w-12 h-12 rounded-2xl bg-white border border-border-soft flex items-center justify-center hover:bg-slate-50 transition-all duration-300 shadow-sm hover:shadow-md"
+            className="w-12 h-12 rounded-2xl bg-white border border-border-soft flex items-center justify-center hover:bg-slate-50 transition-all duration-300 shadow-sm hover:shadow-md text-luxury-text"
           >
-            <span className="text-lg">←</span>
+            <ArrowLeft size={20} strokeWidth={2.5} />
           </button>
           <div className="flex flex-col gap-0.5">
             <h1 className="text-3xl font-bold font-heading text-luxury-text capitalize tracking-tight">
@@ -67,7 +68,7 @@ function LegendItem({ color, label }) {
          <div className="w-3 h-3 rounded-full" style={{ background: color }} />
          <div className="absolute inset-0 w-3 h-3 rounded-full animate-ping opacity-20" style={{ background: color }} />
       </div>
-      <span className="text-[10px] uppercase font-bold font-heading tracking-widest text-secondary group-hover:text-luxury-text transition-colors">
+      <span className="text-[10px] uppercase font-black font-heading tracking-widest text-secondary group-hover:text-luxury-text transition-colors">
         {label}
       </span>
     </div>
