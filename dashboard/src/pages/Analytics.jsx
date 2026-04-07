@@ -5,15 +5,13 @@ import { useAnalytics } from '../hooks/useAnalytics';
 import ClickChart from '../components/ClickChart';
 import ScrollChart from '../components/ScrollChart';
 import FilterBar from '../components/FilterBar';
-
-const DEFAULT_PROJECT = 'test-project-001';
-const DEFAULT_PAGE    = 'http://localhost/test';
+import ExportButton from '../components/ExportButton';
 
 export default function Analytics() {
   const navigate = useNavigate();
   const [filters, setFilters] = useState({
-    projectId: DEFAULT_PROJECT,
-    pageUrl:   DEFAULT_PAGE,
+    projectId: '',
+    pageUrl:   '',
   });
 
   const { analytics, loading: anLoading, error: anError } = useAnalytics(filters);
@@ -22,12 +20,6 @@ export default function Analytics() {
     <div className="flex flex-col gap-10 animate-fade-in">
       <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-6">
         <div className="flex items-center gap-5">
-          <button 
-            onClick={() => navigate('/')}
-            className="w-12 h-12 rounded-2xl bg-white border border-border-soft flex items-center justify-center hover:bg-slate-50 transition-all duration-300 shadow-sm hover:shadow-md text-luxury-text"
-          >
-            <ArrowLeft size={20} strokeWidth={2.5} />
-          </button>
           <div className="flex flex-col gap-0.5">
             <h1 className="text-3xl font-bold font-heading text-luxury-text capitalize tracking-tight">
               Behavioral Analytics
@@ -36,11 +28,14 @@ export default function Analytics() {
           </div>
         </div>
 
-        <FilterBar
-          projectId={filters.projectId}
-          pageUrl={filters.pageUrl}
-          onFilter={(f) => setFilters(f)}
-        />
+        <div className="flex items-center gap-4">
+          <ExportButton data={analytics} filename="behavioral-analytics" />
+          <FilterBar
+            projectId={filters.projectId}
+            pageUrl={filters.pageUrl}
+            onFilter={(f) => setFilters(f)}
+          />
+        </div>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">

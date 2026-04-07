@@ -29,11 +29,7 @@ export default function HeatmapView({ data = [], total = 0, loading = false, err
     // Expose global test helper
     window.__testHeatmap = (points) => {
       if (!heatmapInstance.current) return;
-      const dataPoints = points || Array.from({ length: 80 }, () => ({
-        x: Math.random() * containerRef.current.offsetWidth,
-        y: Math.random() * containerRef.current.offsetHeight,
-        value: Math.floor(Math.random() * 5) + 1,
-      }));
+      const dataPoints = Array.isArray(points) ? points : [];
 
       heatmapInstance.current.setData({
         max: 5,

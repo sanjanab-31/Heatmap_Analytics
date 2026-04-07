@@ -5,20 +5,18 @@ import { useAnalytics }   from '../hooks/useAnalytics';
 import { ArrowRight } from 'lucide-react';
 
 import FilterBar   from '../components/FilterBar';
+import ExportButton from '../components/ExportButton';
 import StatsCards  from '../components/StatsCards';
 import HeatmapView from '../components/HeatmapView';
 import ClickChart  from '../components/ClickChart';
 import ScrollChart from '../components/ScrollChart';
 import TopElements from '../components/TopElements';
 
-const DEFAULT_PROJECT = 'test-project-001';
-const DEFAULT_PAGE    = 'http://localhost/test';
-
 export default function Dashboard() {
   const navigate = useNavigate();
   const [filters, setFilters] = useState({
-    projectId: DEFAULT_PROJECT,
-    pageUrl:   DEFAULT_PAGE,
+    projectId: '',
+    pageUrl:   '',
   });
 
   const { data, total, loading: hmLoading, error: hmError } = useHeatmapData(filters);
@@ -38,11 +36,14 @@ export default function Dashboard() {
           </p>
         </div>
         
-        <FilterBar
-          projectId={filters.projectId}
-          pageUrl={filters.pageUrl}
-          onFilter={(f) => setFilters(f)}
-        />
+        <div className="flex items-center gap-4">
+          <ExportButton data={analytics} filename="dashboard-analytics" />
+          <FilterBar
+            projectId={filters.projectId}
+            pageUrl={filters.pageUrl}
+            onFilter={(f) => setFilters(f)}
+          />
+        </div>
       </div>
 
       {/* Stats Cards Section */}
@@ -50,7 +51,7 @@ export default function Dashboard() {
 
       {/* Top Clicked Elements Section */}
       <section className="flex flex-col gap-5">
-        <TopElements loading={anLoading} />
+        <TopElements loading={anLoading} data={analytics?.top_elements || []} />
       </section>
 
       {/* Main Grid: Heatmap & Click Velocity */}

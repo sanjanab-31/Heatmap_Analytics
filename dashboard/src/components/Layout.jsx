@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { NavLink, Outlet } from 'react-router-dom';
+import { fetchProjects } from '../api/client';
 import { 
   LayoutDashboard, 
   Flame, 
@@ -15,6 +16,47 @@ import {
 } from 'lucide-react';
 
 export default function Layout() {
+  const [showNotifications, setShowNotifications] = useState(false);
+  const [notifications, setNotifications] = useState([]);
+  const [projectStats, setProjectStats] = useState({ total: 0, active: 0 });
+
+  useEffect(() => {
+    let mounted = true;
+    const loadProjects = async () => {
+      const projects = await fetchProjects();
+      if (!mounted) return;
+
+      const total = projects.length;
+      const active = projects.filter((project) => project.status === 'active').length;
+      setProjectStats({ total, active });
+
+      const items = projects
+        .slice(0, 3)
+        .map((project) => ({
+          id: project._id,
+          title: project.name,
+          message: `${project.domain} is ${project.status}`,
+          timeAgo: project.createdAt ? new Date(project.createdAt).toLocaleDateString() : 'Recently',
+        }));
+      setNotifications(items);
+    };
+
+    loadProjects().catch(() => {
+      if (mounted) {
+        setProjectStats({ total: 0, active: 0 });
+        setNotifications([]);
+      }
+    });
+
+    return () => {
+      mounted = false;
+    };
+  }, []);
+
+  const usagePercent = projectStats.total > 0
+    ? Math.round((projectStats.active / projectStats.total) * 100)
+    : 0;
+
   return (
     <div className="flex h-screen bg-luxury-bg font-body antialiased overflow-hidden">
       
@@ -45,13 +87,13 @@ export default function Layout() {
         <div className="p-6 mt-auto rounded-2xl bg-slate-50/80 border border-slate-100 flex flex-col gap-3 shadow-sm">
           <div className="flex items-center justify-between">
             <p className="text-[10px] uppercase font-black tracking-widest text-secondary">Current Plan</p>
-            <span className="px-2 py-0.5 bg-blue-100 text-[10px] font-bold text-luxury-blue rounded-full">PRO</span>
+            <span className="px-2 py-0.5 bg-blue-100 text-[10px] font-bold text-luxury-blue rounded-full">{projectStats.total > 5 ? 'PRO' : 'STARTER'}</span>
           </div>
-          <p className="text-sm font-bold text-luxury-text">Enterprise Elite</p>
+          <p className="text-sm font-bold text-luxury-text">{projectStats.total} Project{projectStats.total === 1 ? '' : 's'}</p>
           <div className="w-full h-1.5 bg-slate-200 rounded-full overflow-hidden">
-            <div className="w-3/4 h-full bg-luxury-blue rounded-full shadow-[0_0_8px_rgba(0,102,255,0.4)]" />
+            <div className="h-full bg-luxury-blue rounded-full shadow-[0_0_8px_rgba(0,102,255,0.4)]" style={{ width: `${usagePercent}%` }} />
           </div>
-          <p className="text-[10px] text-secondary font-medium">75% of data limit used</p>
+          <p className="text-[10px] text-secondary font-medium">{usagePercent}% active coverage</p>
         </div>
       </aside>
 
@@ -78,11 +120,47 @@ export default function Layout() {
             </div>
           </div>
           
-          <div className="flex items-center gap-6">
-            <div className="w-10 h-10 rounded-xl bg-slate-50 border border-slate-200 flex items-center justify-center cursor-pointer hover:bg-slate-100 transition-colors relative group">
-               <Bell size={20} className="text-secondary group-hover:text-luxury-blue transition-colors" />
+          <div className="flex items-center gap-6 relative">
+            {/* Notification Trigger */}
+            <div 
+              className="w-10 h-10 rounded-xl bg-slate-50 border border-slate-200 flex items-center justify-center cursor-pointer hover:bg-slate-100 transition-colors relative group"
+              onClick={() => setShowNotifications(!showNotifications)}
+            >
+               <Bell size={20} className={`transition-colors ${showNotifications ? 'text-luxury-blue' : 'text-secondary group-hover:text-luxury-blue'}`} />
                <span className="absolute top-2.5 right-2.5 w-2 h-2 bg-red-500 rounded-full border-2 border-white" />
             </div>
+            
+            {/* Notifications Dropdown Panel */}
+            {showNotifications && (
+              <div className="absolute top-14 right-48 w-80 bg-white border border-border-soft rounded-2xl shadow-premium overflow-hidden z-50 animate-fade-in origin-top-right">
+                <div className="p-4 border-b border-border-soft flex items-center justify-between bg-slate-50/50">
+                  <h3 className="text-sm font-bold text-luxury-text">Notifications</h3>
+                  <span className="text-[10px] font-bold text-luxury-blue bg-luxury-blue/10 px-2 py-0.5 rounded-full">{notifications.length} New</span>
+                </div>
+                <div className="flex flex-col max-h-[320px] overflow-y-auto custom-scrollbar">
+                  {notifications.length === 0 ? (
+                    <div className="p-6 text-center text-xs text-secondary">No notifications yet.</div>
+                  ) : (
+                    notifications.map((notification) => (
+                      <div key={notification.id} className="p-4 border-b border-border-soft/50 hover:bg-slate-50 transition-colors cursor-pointer flex gap-3">
+                        <div className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center shrink-0">
+                          <Bell size={14} className="text-blue-600" />
+                        </div>
+                        <div className="flex flex-col">
+                          <p className="text-sm font-medium text-luxury-text leading-tight">{notification.title}</p>
+                          <p className="text-xs text-secondary mt-1">{notification.message}</p>
+                          <p className="text-[10px] text-slate-400 font-medium mt-2">{notification.timeAgo}</p>
+                        </div>
+                      </div>
+                    ))
+                  )}
+
+                </div>
+                <div className="p-3 border-t border-border-soft bg-slate-50/50 text-center cursor-pointer hover:bg-slate-100 transition-colors">
+                  <span className="text-xs font-bold text-luxury-blue">Mark all as read</span>
+                </div>
+              </div>
+            )}
             
             <div className="h-10 w-[1px] bg-slate-200" />
             
@@ -137,28 +215,23 @@ function NavItem({ to, label, icon }) {
 }
 
 function RealTimeStatus() {
-  const [usersOnline, setUsersOnline] = useState(142);
-  const [secondsSinceEvent, setSecondsSinceEvent] = useState(2);
+  const [secondsSinceEvent, setSecondsSinceEvent] = useState(0);
+  const [lastSyncAt, setLastSyncAt] = useState(() => new Date());
 
   useEffect(() => {
-    // Simulate real-time user fluctuations
-    const userInterval = setInterval(() => {
-      setUsersOnline(prev => {
-        const change = Math.floor(Math.random() * 5) - 2; // fluctuate between -2 and +2
-        return Math.max(12, prev + change);
-      });
-    }, 3500);
-
-    // Simulate ticking clock for last event received
     const timeInterval = setInterval(() => {
-      setSecondsSinceEvent(prev => {
-        if (Math.random() > 0.85) return 0; // Randomly reset, simulating a new event incoming
-        return prev + 1;
+      setSecondsSinceEvent((prev) => {
+        const next = prev + 1;
+        if (next >= 30) {
+          setLastSyncAt(new Date());
+          return 0;
+        }
+
+        return next;
       });
     }, 1000);
 
     return () => {
-      clearInterval(userInterval);
       clearInterval(timeInterval);
     };
   }, []);
@@ -178,8 +251,8 @@ function RealTimeStatus() {
            <Users size={14} className="relative z-10" />
         </div>
         <div className="flex flex-col">
-          <span className="text-[9px] text-slate-400 font-black uppercase tracking-widest leading-none mb-0.5">Active Users</span>
-          <span className="text-sm font-black text-luxury-text leading-none">{usersOnline.toLocaleString()}</span>
+          <span className="text-[9px] text-slate-400 font-black uppercase tracking-widest leading-none mb-0.5">Last Sync</span>
+          <span className="text-sm font-black text-luxury-text leading-none">{lastSyncAt.toLocaleTimeString()}</span>
         </div>
       </div>
       

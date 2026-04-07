@@ -1,15 +1,7 @@
 import React from 'react';
 import { MousePointer2, ExternalLink } from 'lucide-react';
 
-const MOCK_ELEMENTS = [
-  { id: 1, name: 'button#primary-cta', label: 'Primary CTA Button', clicks: 3240, percentage: 42 },
-  { id: 2, name: 'a.nav-link-pricing', label: 'Pricing Nav Link', clicks: 1845, percentage: 24 },
-  { id: 3, name: 'button.login-submit', label: 'Login Submit Btn', clicks: 1120, percentage: 14 },
-  { id: 4, name: 'img.hero-banner', label: 'Hero Image Banner', clicks: 850, percentage: 11 },
-  { id: 5, name: 'a.footer-discord', label: 'Footer Discord Icon', clicks: 425, percentage: 5 },
-];
-
-export default function TopElements({ loading, data = MOCK_ELEMENTS }) {
+export default function TopElements({ loading, data = [] }) {
   const isEmpty = !loading && (!data || data.length === 0);
 
   if (loading) {
@@ -54,7 +46,7 @@ export default function TopElements({ loading, data = MOCK_ELEMENTS }) {
 
       {/* List */}
       <div className="flex flex-col gap-5">
-        {MOCK_ELEMENTS.map((el, index) => (
+        {data.map((el, index) => (
           <div key={el.id} className="flex flex-col gap-2.5 group cursor-pointer p-2 rounded-xl hover:bg-slate-50 transition-colors">
             <div className="flex justify-between items-center text-sm">
               <div className="flex items-center gap-3.5">

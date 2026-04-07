@@ -5,14 +5,11 @@ import { useHeatmapData } from '../hooks/useHeatmapData';
 import HeatmapView from '../components/HeatmapView';
 import FilterBar from '../components/FilterBar';
 
-const DEFAULT_PROJECT = 'test-project-001';
-const DEFAULT_PAGE    = 'https://example.com/home';
-
 export default function Heatmaps() {
   const navigate = useNavigate();
   const [filters, setFilters] = useState({
-    projectId: DEFAULT_PROJECT,
-    pageUrl:   DEFAULT_PAGE,
+    projectId: '',
+    pageUrl:   '',
   });
 
   const { data, total, loading: hmLoading, error: hmError } = useHeatmapData(filters);
@@ -21,12 +18,6 @@ export default function Heatmaps() {
     <div className="flex flex-col gap-8 animate-fade-in">
       <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-6">
         <div className="flex items-center gap-5">
-          <button 
-            onClick={() => navigate('/')}
-            className="w-12 h-12 rounded-2xl bg-white border border-border-soft flex items-center justify-center hover:bg-slate-50 transition-all duration-300 shadow-sm hover:shadow-md text-luxury-text"
-          >
-            <ArrowLeft size={20} strokeWidth={2.5} />
-          </button>
           <div className="flex flex-col gap-0.5">
             <h1 className="text-3xl font-bold font-heading text-luxury-text capitalize tracking-tight">
               Detailed Heatmap Analysis
