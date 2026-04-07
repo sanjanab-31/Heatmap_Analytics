@@ -1,5 +1,5 @@
 {
-  "name": "heatmap-tracker-sdk",
+  "name": "heatmap-tracker",
   "version": "1.0.0",
   "main": "dist/tracker.cjs.js",
   "module": "dist/tracker.esm.js",
