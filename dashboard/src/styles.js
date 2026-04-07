@@ -34,8 +34,8 @@ export const colors = {
 };
 
 // ── Typography ───────────────────────────────────────────────────────
-export const fontFamily = "'Inter', 'Segoe UI', system-ui, -apple-system, sans-serif";
-export const headingFont = "'Outfit', sans-serif";
+export const fontFamily = "'Poppins', 'Segoe UI', system-ui, -apple-system, sans-serif";
+export const headingFont = "'Poppins', sans-serif";
 
 export const typography = {
   pageTitle: {

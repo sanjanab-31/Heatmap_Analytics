@@ -46,8 +46,8 @@ export default function ScrollChart({ analytics, loading }) {
       tooltip: {
         backgroundColor: '#0f172a',
         padding: 14,
-        titleFont: { size: 12, weight: '900', family: "'Outfit', sans-serif" },
-        bodyFont: { size: 11, weight: '500', family: "'Inter', sans-serif" },
+        titleFont: { size: 12, weight: '900', family: "'Poppins', sans-serif" },
+        bodyFont: { size: 11, weight: '500', family: "'Poppins', sans-serif" },
         cornerRadius: 12,
         displayColors: false,
         callbacks: {
@@ -61,11 +61,11 @@ export default function ScrollChart({ analytics, loading }) {
         ticks: { color: '#94a3b8', font: { size: 9, weight: '700' }, padding: 8 },
         min: 0,
         max: 100,
-        title: { display: true, text: 'VISITOR COMPLETION %', color: '#94a3b8', font: { size: 9, weight: '900', family: "'Outfit', sans-serif" }, padding: 10 },
+        title: { display: true, text: 'VISITOR COMPLETION %', color: '#94a3b8', font: { size: 9, weight: '900', family: "'Poppins', sans-serif" }, padding: 10 },
       },
       y: {
         grid: { display: false },
-        ticks: { color: '#0f172a', font: { size: 11, weight: '700', family: "'Outfit', sans-serif" }, padding: 12 },
+        ticks: { color: '#0f172a', font: { size: 11, weight: '700', family: "'Poppins', sans-serif" }, padding: 12 },
         border: { display: false }
       },
     },

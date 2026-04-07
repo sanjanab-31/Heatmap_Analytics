@@ -49,8 +49,8 @@ export default function ClickChart({ analytics, loading }) {
       tooltip: {
         backgroundColor: '#0f172a',
         padding: 14,
-        titleFont: { size: 13, weight: '900', family: "'Outfit', sans-serif" },
-        bodyFont: { size: 12, weight: '500', family: "'Inter', sans-serif" },
+        titleFont: { size: 13, weight: '900', family: "'Poppins', sans-serif" },
+        bodyFont: { size: 12, weight: '500', family: "'Poppins', sans-serif" },
         cornerRadius: 12,
         displayColors: false,
         caretSize: 6,
