@@ -1,9 +1,10 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ArrowLeft } from 'lucide-react';
 import { useHeatmapData } from '../hooks/useHeatmapData';
 import HeatmapView from '../components/HeatmapView';
 import FilterBar from '../components/FilterBar';
+import { fetchProjects } from '../api/client';
 
 export default function Heatmaps() {
   const navigate = useNavigate();
@@ -13,6 +14,37 @@ export default function Heatmaps() {
   });
 
   const { data, total, loading: hmLoading, error: hmError } = useHeatmapData(filters);
+
+  useEffect(() => {
+    let mounted = true;
+
+    const preloadFilters = async () => {
+      const projects = await fetchProjects();
+      if (!mounted || !Array.isArray(projects) || projects.length === 0) {
+        return;
+      }
+
+      const first = projects[0];
+      setFilters((prev) => {
+        if (prev.projectId && prev.pageUrl) {
+          return prev;
+        }
+
+        return {
+          projectId: prev.projectId || first.projectId || '',
+          pageUrl: prev.pageUrl || '',
+        };
+      });
+    };
+
+    preloadFilters().catch(() => {
+      // Keep manual filter entry available if preload fails.
+    });
+
+    return () => {
+      mounted = false;
+    };
+  }, []);
 
   return (
     <div className="flex flex-col gap-8 animate-fade-in">

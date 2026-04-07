@@ -12,9 +12,12 @@ router.get("/", validateQuery, async (req, res, next) => {
 
 		const filter = {
 			projectId,
-			pageUrl,
 			eventType: "click"
 		};
+
+		if (pageUrl) {
+			filter.pageUrl = pageUrl;
+		}
 
 		if (startDate || endDate) {
 			filter.timestamp = {};

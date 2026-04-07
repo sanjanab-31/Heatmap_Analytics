@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { fetchAnalytics, fetchHeatmapData, fetchProjects } from '../api/client';
+import { fetchProjects, fetchRecordings } from '../api/client';
 import { 
   Video, 
   Play, 
@@ -28,51 +28,40 @@ const formatAgo = (date) => {
   return `${hours}h ago`;
 };
 
+const REFRESH_INTERVAL_MS = 5_000;
+
 const formatDuration = (seconds) => {
   const mins = Math.floor(seconds / 60);
   const secs = seconds % 60;
   return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
 };
 
-const buildSessionsFromPoints = (points = [], totalClicks = 0) => {
-  const safePoints = Array.isArray(points) ? points : [];
-  if (safePoints.length === 0) return [];
+const normalizePlaybackPoint = (event) => {
+  if (!event) {
+    return { x: 50, y: 50 };
+  }
 
-  const targetSessions = Math.max(1, Math.min(10, Math.ceil(safePoints.length / 12)));
-  const chunkSize = Math.max(1, Math.ceil(safePoints.length / targetSessions));
-
-  return Array.from({ length: targetSessions }, (_, index) => {
-    const chunk = safePoints.slice(index * chunkSize, (index + 1) * chunkSize);
-    const interactions = chunk.length;
-    const durationSec = Math.max(20, interactions * 4);
-    const sessionAgeMs = index * 7 * 60 * 1000;
-    const startedAt = new Date(Date.now() - sessionAgeMs);
-    const events = chunk.slice(0, 16).map((point, idx) => {
-      const time = Math.max(1, Math.min(durationSec, Math.round(((idx + 1) / (interactions || 1)) * durationSec)));
-      return {
-        id: `${index}_${idx}`,
-        type: 'click',
-        time,
-        label: `Click at (${Math.round(point.x)}, ${Math.round(point.y)})`,
-        timestamp: formatDuration(time),
-      };
-    });
-
+  if (Number.isFinite(event.xPercent) && Number.isFinite(event.yPercent)) {
     return {
-      id: `sess_${startedAt.getTime()}_${index}`,
-      user: `Visitor #${String((startedAt.getTime() % 10000) + index).padStart(4, '0')}`,
-      duration: formatDuration(durationSec),
-      durationSec,
-      interactions,
-      timestamp: index === 0 && totalClicks > 0 ? 'Live Now' : formatAgo(startedAt),
-      location: 'Unknown',
-      browser: 'Unknown',
-      os: 'Unknown',
-      pages: 1,
-      status: index === 0 && totalClicks > 0 ? 'live' : 'completed',
-      events,
+      x: Math.max(0, Math.min(100, event.xPercent)),
+      y: Math.max(0, Math.min(100, event.yPercent)),
     };
-  });
+  }
+
+  if (event.type === 'scroll' && Number.isFinite(event.scrollDepth)) {
+    return {
+      x: 50,
+      y: Math.max(0, Math.min(100, event.scrollDepth)),
+    };
+  }
+
+  const x = Number.isFinite(event.x) ? (event.x / 1366) * 100 : 50;
+  const y = Number.isFinite(event.y) ? (event.y / 768) * 100 : 50;
+
+  return {
+    x: Math.max(0, Math.min(100, x)),
+    y: Math.max(0, Math.min(100, y)),
+  };
 };
 
 export default function Recordings() {
@@ -81,10 +70,12 @@ export default function Recordings() {
   const [sessions, setSessions] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
-  const [selectedSession, setSelectedSession] = useState(null);
+  const [selectedSessionId, setSelectedSessionId] = useState(null);
   const [isPlaying, setIsPlaying] = useState(false);
   const [currentTime, setCurrentTime] = useState(0);
   const [playbackSpeed, setPlaybackSpeed] = useState(1);
+
+  const selectedSession = sessions.find((session) => session.id === selectedSessionId) || null;
 
   useEffect(() => {
     let mounted = true;
@@ -92,7 +83,7 @@ export default function Recordings() {
       const projects = await fetchProjects();
       if (!mounted || !projects.length) return;
       setProjectId(projects[0].projectId || '');
-      setPageUrl((prev) => prev || `https://${projects[0].domain}`);
+      setPageUrl((prev) => prev || '');
     };
 
     preloadProject().catch(() => {
@@ -105,7 +96,7 @@ export default function Recordings() {
   }, []);
 
   const loadRecordings = async () => {
-    if (!projectId || !pageUrl) {
+    if (!projectId) {
       setSessions([]);
       return;
     }
@@ -113,12 +104,9 @@ export default function Recordings() {
     setLoading(true);
     setError(null);
     try {
-      const [heatmap, analytics] = await Promise.all([
-        fetchHeatmapData({ projectId, pageUrl }),
-        fetchAnalytics({ projectId, pageUrl }),
-      ]);
-
-      setSessions(buildSessionsFromPoints(heatmap?.points || [], analytics?.total_clicks || 0));
+      const response = await fetchRecordings({ projectId, pageUrl: pageUrl || undefined, limit: 20 });
+      const nextSessions = Array.isArray(response?.sessions) ? response.sessions : [];
+      setSessions(nextSessions);
     } catch (err) {
       setError(err.message || 'Failed to load recordings');
       setSessions([]);
@@ -129,6 +117,14 @@ export default function Recordings() {
 
   useEffect(() => {
     loadRecordings();
+
+    const intervalId = setInterval(() => {
+      loadRecordings();
+    }, REFRESH_INTERVAL_MS);
+
+    return () => {
+      clearInterval(intervalId);
+    };
   }, [projectId, pageUrl]);
 
   // Simulated playback timer
@@ -151,7 +147,7 @@ export default function Recordings() {
   const formatTime = formatDuration;
 
   const handlePlaySession = (session) => {
-    setSelectedSession(session);
+    setSelectedSessionId(session.id);
     setCurrentTime(0);
     setIsPlaying(true);
   };
@@ -164,6 +160,10 @@ export default function Recordings() {
     ? (sessions.reduce((sum, session) => sum + session.interactions, 0) / totalRecorded).toFixed(1)
     : '0.0';
   const activeRecently = sessions.filter((session) => session.status === 'live').length;
+  const activePlaybackEvent = selectedSession?.events
+    ?.filter((event) => event.time <= currentTime)
+    .slice(-1)[0] || selectedSession?.events?.[0] || null;
+  const playbackPoint = normalizePlaybackPoint(activePlaybackEvent);
 
   return (
     <div className="flex flex-col gap-8 animate-fade-in py-10 relative">
@@ -312,7 +312,7 @@ export default function Recordings() {
                         LIVE
                        </span>
                     ) : (
-                      <span className="text-sm font-medium text-secondary italic">{session.timestamp}</span>
+                      <span className="text-sm font-medium text-secondary italic">{formatAgo(new Date(session.timestamp))}</span>
                     )}
                   </td>
                   <td className="px-8 py-5 text-right">
@@ -342,7 +342,7 @@ export default function Recordings() {
       {/* Playback Modal */}
       {selectedSession && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 md:p-8 animate-fade-in">
-          <div className="absolute inset-0 bg-slate-900/60 backdrop-blur-md" onClick={() => setSelectedSession(null)}></div>
+          <div className="absolute inset-0 bg-slate-900/60 backdrop-blur-md" onClick={() => setSelectedSessionId(null)}></div>
           
           <div className="relative w-full max-w-6xl h-full max-h-[85vh] glass-card overflow-hidden flex flex-col bg-white border-none shadow-2xl animate-scale-in">
             {/* Player Header */}
@@ -366,7 +366,7 @@ export default function Recordings() {
               <div className="flex items-center gap-2">
                  <button className="p-2 text-slate-400 hover:text-slate-600 transition-colors"><Maximize size={20} /></button>
                  <button 
-                  onClick={() => setSelectedSession(null)}
+                  onClick={() => setSelectedSessionId(null)}
                   className="p-2 text-slate-400 hover:text-red-500 transition-colors"
                 >
                   <X size={24} />
@@ -402,8 +402,8 @@ export default function Recordings() {
                        <div 
                          className="absolute w-8 h-8 pointer-events-none transition-all duration-300 transform -translate-x-1/2 -translate-y-1/2"
                          style={{ 
-                           left: `${30 + (currentTime % 40)}%`, 
-                           top: `${40 + (currentTime % 30)}%`,
+                           left: `${playbackPoint.x}%`, 
+                           top: `${playbackPoint.y}%`,
                            opacity: isPlaying ? 1 : 0.5
                          }}
                        >

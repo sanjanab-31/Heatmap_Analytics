@@ -27,8 +27,8 @@ const validateQuery = (req, res, next) => {
 		return res.status(400).json({ error: "projectId query parameter is required" });
 	}
 
-	if (!pageUrl || typeof pageUrl !== "string") {
-		return res.status(400).json({ error: "pageUrl query parameter is required" });
+	if (pageUrl !== undefined && pageUrl !== null && typeof pageUrl !== "string") {
+		return res.status(400).json({ error: "pageUrl must be a string when provided" });
 	}
 
 	if (startDate && Number.isNaN(new Date(startDate).getTime())) {

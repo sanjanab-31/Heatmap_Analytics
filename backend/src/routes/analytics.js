@@ -27,9 +27,12 @@ router.get("/", validateQuery, async (req, res, next) => {
 		const dateMatch = buildDateMatch(startDate, endDate);
 
 		const baseMatch = {
-			projectId,
-			pageUrl
+			projectId
 		};
+
+		if (pageUrl) {
+			baseMatch.pageUrl = pageUrl;
+		}
 
 		if (dateMatch) {
 			baseMatch.timestamp = dateMatch;
@@ -105,10 +108,37 @@ router.get("/", validateQuery, async (req, res, next) => {
 			{ $limit: 10 }
 		];
 
-		const [totalsResult, clicksPerHourResult, topPagesResult] = await Promise.all([
+		const scrollDepthBucketsPipeline = [
+			{ $match: { ...baseMatch, eventType: "scroll" } },
+			{
+				$project: {
+					bucket: {
+						$switch: {
+							branches: [
+								{ case: { $lte: ["$scrollDepth", 20] }, then: 0 },
+								{ case: { $lte: ["$scrollDepth", 40] }, then: 1 },
+								{ case: { $lte: ["$scrollDepth", 60] }, then: 2 },
+								{ case: { $lte: ["$scrollDepth", 80] }, then: 3 }
+							],
+							default: 4
+						}
+					}
+				}
+			},
+			{
+				$group: {
+					_id: "$bucket",
+					count: { $sum: 1 }
+				}
+			},
+			{ $sort: { _id: 1 } }
+		];
+
+		const [totalsResult, clicksPerHourResult, topPagesResult, scrollDepthBucketsResult] = await Promise.all([
 			Event.aggregate(totalsPipeline),
 			Event.aggregate(clicksPerHourPipeline),
-			Event.aggregate(topPagesPipeline)
+			Event.aggregate(topPagesPipeline),
+			Event.aggregate(scrollDepthBucketsPipeline)
 		]);
 
 		const totals = totalsResult[0] || {
@@ -131,11 +161,25 @@ router.get("/", validateQuery, async (req, res, next) => {
 			count: countsByHour.get(hour) || 0
 		}));
 
+		const scrollCountsByBucket = new Map(
+			scrollDepthBucketsResult.map((item) => [item._id, item.count])
+		);
+
+		const scrollDepthBuckets = Array.from({ length: 5 }, (_, bucket) => {
+			if (!totals.totalScrollEvents) {
+				return 0;
+			}
+
+			const count = scrollCountsByBucket.get(bucket) || 0;
+			return Math.round((count / totals.totalScrollEvents) * 100);
+		});
+
 		return res.status(200).json({
 			totalClicks: totals.totalClicks || 0,
 			totalScrollEvents: totals.totalScrollEvents || 0,
 			avgScrollDepth,
 			maxScrollDepth: totals.maxScrollDepth || 0,
+			scrollDepthBuckets,
 			clicksPerHour,
 			topPages: topPagesResult
 		});

@@ -2,25 +2,10 @@
 // Shared request helper for all dashboard endpoints.
 
 const BASE_URL = import.meta.env.VITE_API_URL || '';
-const PROJECTS_STORAGE_KEY = 'heatwave_projects_v1';
 
 const toNumber = (value, fallback = 0) => {
   const parsed = Number(value);
   return Number.isFinite(parsed) ? parsed : fallback;
-};
-
-const getStoredProjects = () => {
-  try {
-    const raw = localStorage.getItem(PROJECTS_STORAGE_KEY);
-    const parsed = raw ? JSON.parse(raw) : [];
-    return Array.isArray(parsed) ? parsed : [];
-  } catch {
-    return [];
-  }
-};
-
-const saveProjects = (projects) => {
-  localStorage.setItem(PROJECTS_STORAGE_KEY, JSON.stringify(projects));
 };
 
 const pageLabelFromUrl = (pageUrl) => {
@@ -139,6 +124,9 @@ export async function fetchAnalytics(params = {}, signal) {
   const totalScrollEvents = toNumber(raw?.totalScrollEvents);
   const avgScrollDepth = toNumber(raw?.avgScrollDepth);
   const maxScrollDepth = toNumber(raw?.maxScrollDepth);
+  const scrollDepthBuckets = Array.isArray(raw?.scrollDepthBuckets)
+    ? raw.scrollDepthBuckets.map((value) => toNumber(value))
+    : [0, 0, 0, 0, 0];
 
   const clicksByHour = Array.from({ length: 24 }, (_, hour) => {
     const bucket = Array.isArray(raw?.clicksPerHour)
@@ -164,13 +152,15 @@ export async function fetchAnalytics(params = {}, signal) {
     click_rate: totalScrollEvents > 0 ? (totalClicks / totalScrollEvents) * 100 : 0,
     avg_scroll: avgScrollDepth,
     max_scroll: maxScrollDepth,
+    scroll_depth: scrollDepthBuckets,
     clicks_by_hour: clicksByHour,
     top_elements: topElements,
+    clicksPerHour: clicksByHour.map((count, hour) => ({ hour, count })),
+    topPages: topElements.map((item) => ({ pageUrl: item.name, clicks: item.clicks })),
   };
 }
 
 export async function fetchProjects(signal) {
-<<<<<<< HEAD
   return request('/api/projects', {}, signal ? { signal } : {});
 }
 
@@ -192,72 +182,8 @@ export async function deleteProject(id) {
   return request(`/api/projects/${encodeURIComponent(id)}`, {}, {
     method: 'DELETE',
   });
-=======
-  return new Promise((resolve, reject) => {
-    const timeoutId = setTimeout(() => {
-      if (signal?.aborted) {
-        reject(new DOMException('Request aborted', 'AbortError'));
-        return;
-      }
-
-      resolve(getStoredProjects());
-    }, 250);
-
-    signal?.addEventListener('abort', () => {
-      clearTimeout(timeoutId);
-      reject(new DOMException('Request aborted', 'AbortError'));
-    }, { once: true });
-  });
 }
 
-export async function createProject({ name, domain }) {
-  return new Promise((resolve, reject) => setTimeout(() => {
-    const existingProjects = getStoredProjects();
-
-    if (existingProjects.some((p) => p.domain === domain)) {
-      return reject(new Error('A project with this domain already exists.'));
-    }
-
-    const rawApiKey = `pk_live_${crypto.randomUUID().replace(/-/g, '').slice(0, 24)}`;
-    const newProject = {
-      _id: crypto.randomUUID(),
-      name,
-      domain,
-      projectId: `proj_${crypto.randomUUID().replace(/-/g, '').slice(0, 12)}`,
-      apiKeyLastFour: rawApiKey.slice(-4),
-      status: 'active',
-      totalClicks: 0,
-      totalSessions: 0,
-      lastEventAt: null,
-      createdAt: new Date().toISOString(),
-    };
-
-    saveProjects([newProject, ...existingProjects]);
-    resolve({ ...newProject, rawApiKey });
-  }, 400));
-}
-
-export async function updateProjectStatus(id, status) {
-  return new Promise((resolve, reject) => setTimeout(() => {
-    const projects = getStoredProjects();
-    const projectIndex = projects.findIndex((p) => p._id === id);
-
-    if (projectIndex === -1) {
-      return reject(new Error('Project not found'));
-    }
-
-    projects[projectIndex] = { ...projects[projectIndex], status };
-    saveProjects(projects);
-    resolve(projects[projectIndex]);
-  }, 250));
-}
-
-export async function deleteProject(id) {
-  return new Promise((resolve) => setTimeout(() => {
-    const projects = getStoredProjects();
-    const filtered = projects.filter((p) => p._id !== id);
-    saveProjects(filtered);
-    resolve({ message: 'Project deleted' });
-  }, 250));
->>>>>>> b1c105f07640716a77d39b631528c26ea5982012
+export async function fetchRecordings(params = {}, signal) {
+  return request('/api/recordings', params, signal ? { signal } : {});
 }
