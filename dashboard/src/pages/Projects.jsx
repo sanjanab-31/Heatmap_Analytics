@@ -151,23 +151,21 @@ export default function Projects() {
   };
 
   return (
-    <div className="flex flex-col gap-6 w-full pb-20">
+    <div className="flex flex-col gap-6 w-full pb-16">
       
       {/* Header Section */}
       <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
         <div className="flex flex-col">
-           <h1 className="text-3xl font-black text-luxury-text font-heading flex items-center gap-3">
-             Project Workspaces
-           </h1>
-           <p className="text-secondary mt-2 max-w-xl text-sm leading-relaxed">
-             Manage your active website integrations. Unique API keys and domains enforce strict CORS rules for enterprise-grade security.
-           </p>
+          <h1 className="text-2xl font-semibold text-luxury-text font-heading">Project Workspaces</h1>
+          <p className="text-secondary mt-1.5 max-w-2xl text-sm">
+            Manage project domains, tracking status, and integration credentials.
+          </p>
         </div>
         <button 
           onClick={() => setIsCreateModalOpen(true)}
-          className="flex items-center justify-center gap-2 px-6 py-3 bg-luxury-blue text-white text-sm font-bold rounded-xl hover:bg-blue-600 transition-all shadow-lg hover:shadow-xl hover:-translate-y-0.5 active:translate-y-0 whitespace-nowrap"
+          className="h-10 px-4 flex items-center justify-center gap-2 bg-luxury-blue text-white text-sm font-semibold rounded-lg hover:bg-blue-700 transition-colors shadow-sm whitespace-nowrap"
         >
-          <FolderPlus size={18} />
+          <FolderPlus size={16} />
           Create Project
         </button>
       </div>
@@ -175,129 +173,110 @@ export default function Projects() {
       {/* Main Content Area */}
       <div className="mt-4">
         {loading ? (
-          <div className="flex flex-col items-center justify-center h-64 panel-container animate-pulse gap-3 cursor-wait">
-            <div className="w-8 h-8 border-4 border-luxury-blue border-r-transparent rounded-full animate-spin"></div>
+          <div className="h-56 bg-white border border-slate-200 rounded-xl flex flex-col items-center justify-center gap-3">
+            <div className="w-7 h-7 border-2 border-slate-200 border-t-luxury-blue rounded-full animate-spin" />
             <p className="text-secondary text-sm font-medium">Loading workspaces...</p>
           </div>
         ) : error ? (
-          <div className="panel-container border-red-200 bg-red-50/50 flex flex-col items-center justify-center py-12 gap-2 text-center relative overflow-hidden">
-             <AlertTriangle size={32} className="text-red-500 mb-2" />
-             <p className="text-red-600 font-semibold">{error}</p>
-             <button onClick={loadProjects} className="mt-4 px-4 py-2 border border-red-200 text-red-600 font-medium rounded-lg hover:bg-red-100 transition-colors text-sm">Try Again</button>
+          <div className="bg-white border border-red-200 rounded-xl flex flex-col items-center justify-center py-12 gap-2 text-center">
+            <AlertTriangle size={24} className="text-red-500" />
+            <p className="text-red-600 font-medium">{error}</p>
+            <button onClick={loadProjects} className="mt-2 h-9 px-4 border border-red-200 text-red-600 font-medium rounded-lg hover:bg-red-50 transition-colors text-sm">Try Again</button>
           </div>
         ) : projects.length === 0 ? (
-          <div className="panel-container flex flex-col items-center justify-center text-center py-24 gap-4">
-             <div className="w-16 h-16 rounded-2xl bg-luxury-blue/5 border border-luxury-blue/10 flex items-center justify-center text-luxury-blue mb-2 shadow-[0_0_20px_rgba(0,102,255,0.1)]">
-                <FolderPlus size={32} />
-             </div>
-             <div className="flex flex-col gap-1.5">
-               <h3 className="text-sm font-bold text-slate-400 font-heading">No data available yet</h3>
-               <p className="text-[10px] text-slate-300 font-medium uppercase tracking-tighter">Start interacting with your website to generate insights</p>
-             </div>
-             <button onClick={() => setIsCreateModalOpen(true)} className="mt-4 text-luxury-blue font-bold text-sm tracking-wide uppercase hover:underline flex items-center gap-1.5 focus:outline-none">
-               Create Now <Play size={14} fill="currentColor" />
-             </button>
+          <div className="bg-white border border-slate-200 rounded-xl flex flex-col items-center justify-center text-center py-20 gap-4">
+            <div className="w-12 h-12 rounded-full bg-blue-50 border border-blue-100 flex items-center justify-center text-luxury-blue">
+              <FolderPlus size={22} />
+            </div>
+            <div className="flex flex-col gap-1">
+              <h3 className="text-sm font-semibold text-luxury-text font-heading">No projects yet</h3>
+              <p className="text-xs text-secondary">Create your first workspace to start collecting analytics.</p>
+            </div>
+            <button onClick={() => setIsCreateModalOpen(true)} className="h-9 px-4 text-sm font-semibold text-luxury-blue bg-blue-50 border border-blue-100 rounded-lg hover:bg-blue-100 transition-colors flex items-center gap-1.5">
+              Create Project <Play size={13} />
+            </button>
           </div>
         ) : (
-          <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
+          <div className="grid grid-cols-1 xl:grid-cols-2 gap-4">
             {projects.map((project) => (
-              <div key={project._id} className="panel-container relative group hover:border-luxury-blue/30 transition-all duration-300">
-                 {/* Top row: Name & Status */}
-                 <div className="flex items-center justify-between pb-4 border-b border-border-soft mb-4">
-                    <div className="flex flex-col gap-1">
-                       <h3 className="text-lg font-bold text-luxury-text tracking-tight">{project.name}</h3>
-                       <div className="flex items-center gap-2 text-xs text-secondary font-medium">
-                          <Globe size={12} />
-                          <span>{project.domain}</span>
-                       </div>
+              <div key={project._id} className="bg-white border border-slate-200 rounded-xl p-5 flex flex-col gap-4">
+                <div className="flex items-start justify-between gap-4 pb-4 border-b border-slate-200">
+                  <div className="flex flex-col gap-1">
+                    <h3 className="text-base font-semibold text-luxury-text tracking-tight">{project.name}</h3>
+                    <div className="flex items-center gap-1.5 text-xs text-secondary font-medium">
+                      <Globe size={12} />
+                      <span>{project.domain}</span>
                     </div>
-                    
-                    {/* Status Toggle */}
-                    <div className="flex items-center gap-3">
-                       <span className={`text-xs font-bold uppercase tracking-wider ${project.status === 'active' ? 'text-emerald-500' : 'text-slate-400'}`}>
-                         {project.status === 'active' ? 'Tracking Active' : 'Paused'}
-                       </span>
-                       <button 
-                         onClick={() => handleToggleStatus(project)}
-                         className={`w-12 h-6 rounded-full relative transition-colors duration-300 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-luxury-blue ${project.status === 'active' ? 'bg-emerald-500' : 'bg-slate-300'}`}
-                       >
-                          <div className={`absolute top-1 left-1 bg-white w-4 h-4 rounded-full shadow-sm transition-transform duration-300 ${project.status === 'active' ? 'translate-x-6' : 'translate-x-0'}`}></div>
-                       </button>
-                    </div>
-                 </div>
-
-                 {/* Stats Row */}
-                 <div className="grid grid-cols-3 gap-4 mb-6">
-                    <div className="flex items-center gap-3 p-3 bg-slate-50/50 border border-slate-100 rounded-xl">
-                       <div className="w-8 h-8 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center">
-                          <Activity size={16} />
-                       </div>
-                       <div className="flex flex-col">
-                          <p className="text-[10px] text-secondary font-bold uppercase tracking-wider">Sessions</p>
-                          <p className="text-sm font-black text-luxury-text">{project.totalSessions.toLocaleString()}</p>
-                       </div>
-                    </div>
-                    <div className="flex items-center gap-3 p-3 bg-slate-50/50 border border-slate-100 rounded-xl">
-                       <div className="w-8 h-8 rounded-lg bg-emerald-50 text-emerald-600 flex items-center justify-center">
-                          <CheckCircle2 size={16} />
-                       </div>
-                       <div className="flex flex-col">
-                          <p className="text-[10px] text-secondary font-bold uppercase tracking-wider">Events</p>
-                          <p className="text-sm font-black text-luxury-text">{project.totalClicks.toLocaleString()}</p>
-                       </div>
-                    </div>
-                    <div className="flex items-center gap-3 p-3 bg-slate-50/50 border border-slate-100 rounded-xl">
-                       <div className="w-8 h-8 rounded-lg bg-purple-50 text-purple-600 flex items-center justify-center">
-                          <Clock size={16} />
-                       </div>
-                       <div className="flex flex-col">
-                          <p className="text-[10px] text-secondary font-bold uppercase tracking-wider">Last Active</p>
-                          <p className="text-xs font-bold text-luxury-text mt-0.5">{formatTimeAgo(project.lastEventAt)}</p>
-                       </div>
-                    </div>
-                 </div>
-
-                 {/* API Key Row */}
-                 <div className="flex flex-col sm:flex-row gap-4 mb-6">
-                    <div className="flex-1 flex flex-col gap-1">
-                       <p className="text-[10px] uppercase font-black tracking-widest text-secondary pl-1">Project ID</p>
-                       <div className="flex items-center gap-2 bg-slate-50 border border-slate-200 px-3 py-2 rounded-lg relative group">
-                          <code className="text-xs font-mono font-medium text-slate-700 select-all">{project.projectId}</code>
-                          <button 
-                            onClick={() => copyToClipboard(project.projectId, `id_${project._id}`)}
-                            className="ml-auto text-secondary hover:text-luxury-blue transition-colors bg-white border border-slate-200 p-1.5 rounded-md shadow-sm"
-                            title="Copy Project ID"
-                          >
-                            {copiedId === `id_${project._id}` ? <CheckCircle2 size={12} className="text-emerald-500" /> : <Copy size={12} />}
-                          </button>
-                       </div>
-                    </div>
-                    <div className="flex-1 flex flex-col gap-1">
-                       <p className="text-[10px] uppercase font-black tracking-widest text-secondary pl-1">API Key</p>
-                       <div className="flex items-center gap-2 bg-slate-50 border border-slate-200 px-3 py-2 rounded-lg relative group">
-                          <Key size={14} className="text-indigo-400 shrink-0" />
-                          <code className="text-xs font-mono font-medium text-slate-700">pk_••••••••••••{project.apiKeyLastFour}</code>
-                       </div>
-                    </div>
-                 </div>
-
-                 {/* Action Buttons Row */}
-                 <div className="flex items-center justify-between border-t border-border-soft pt-4 mt-auto">
-                    <button 
-                       onClick={() => openCodeSnippet(project)}
-                       className="flex items-center gap-2 text-sm font-semibold text-luxury-blue hover:text-blue-700 bg-blue-50 px-4 py-2 rounded-lg hover:bg-blue-100 transition-all border border-blue-100"
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span className={`text-[11px] font-semibold px-2 py-0.5 rounded-full border ${project.status === 'active' ? 'text-emerald-700 bg-emerald-50 border-emerald-100' : 'text-slate-600 bg-slate-100 border-slate-200'}`}>
+                      {project.status === 'active' ? 'Active' : 'Paused'}
+                    </span>
+                    <button
+                      onClick={() => handleToggleStatus(project)}
+                      className={`w-10 h-5 rounded-full relative transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-luxury-blue ${project.status === 'active' ? 'bg-emerald-500' : 'bg-slate-300'}`}
                     >
-                       <Code size={16} /> Copy Setup Code
+                      <div className={`absolute top-0.5 left-0.5 bg-white w-4 h-4 rounded-full shadow-sm transition-transform duration-200 ${project.status === 'active' ? 'translate-x-5' : 'translate-x-0'}`} />
                     </button>
-                    
-                    <button 
-                       onClick={() => confirmDelete(project)}
-                       className="p-2 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors group-hover:opacity-100 sm:opacity-50"
-                       title="Delete Project"
-                    >
-                       <Trash2 size={18} />
-                    </button>
-                 </div>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-3 gap-3">
+                  <div className="bg-slate-50 border border-slate-200 rounded-lg p-3">
+                    <p className="text-[10px] uppercase tracking-wide text-slate-500 font-semibold mb-1">Sessions</p>
+                    <p className="text-sm font-semibold text-luxury-text">{project.totalSessions.toLocaleString()}</p>
+                  </div>
+                  <div className="bg-slate-50 border border-slate-200 rounded-lg p-3">
+                    <p className="text-[10px] uppercase tracking-wide text-slate-500 font-semibold mb-1">Events</p>
+                    <p className="text-sm font-semibold text-luxury-text">{project.totalClicks.toLocaleString()}</p>
+                  </div>
+                  <div className="bg-slate-50 border border-slate-200 rounded-lg p-3">
+                    <p className="text-[10px] uppercase tracking-wide text-slate-500 font-semibold mb-1">Last Active</p>
+                    <p className="text-xs font-semibold text-luxury-text">{formatTimeAgo(project.lastEventAt)}</p>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div className="flex flex-col gap-1">
+                    <p className="text-[10px] uppercase font-semibold tracking-wide text-secondary">Project ID</p>
+                    <div className="flex items-center gap-2 bg-slate-50 border border-slate-200 px-3 py-2 rounded-lg">
+                      <code className="text-xs font-mono font-medium text-slate-700 select-all">{project.projectId}</code>
+                      <button
+                        onClick={() => copyToClipboard(project.projectId, `id_${project._id}`)}
+                        className="ml-auto text-secondary hover:text-luxury-blue transition-colors p-1"
+                        title="Copy Project ID"
+                      >
+                        {copiedId === `id_${project._id}` ? <CheckCircle2 size={12} className="text-emerald-500" /> : <Copy size={12} />}
+                      </button>
+                    </div>
+                  </div>
+                  <div className="flex flex-col gap-1">
+                    <p className="text-[10px] uppercase font-semibold tracking-wide text-secondary">API Key</p>
+                    <div className="flex items-center gap-2 bg-slate-50 border border-slate-200 px-3 py-2 rounded-lg">
+                      <Key size={13} className="text-slate-400 shrink-0" />
+                      <code className="text-xs font-mono font-medium text-slate-700">pk_••••••••••••{project.apiKeyLastFour}</code>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="flex items-center justify-between pt-3 border-t border-slate-200">
+                  <button
+                    onClick={() => openCodeSnippet(project)}
+                    className="h-9 px-3.5 flex items-center gap-2 text-sm font-semibold text-luxury-blue bg-blue-50 border border-blue-100 rounded-lg hover:bg-blue-100 transition-colors"
+                  >
+                    <Code size={14} />
+                    Setup Code
+                  </button>
+
+                  <button
+                    onClick={() => confirmDelete(project)}
+                    className="h-9 px-3 flex items-center gap-1.5 text-sm font-medium text-slate-500 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                    title="Delete Project"
+                  >
+                    <Trash2 size={15} />
+                    Delete
+                  </button>
+                </div>
               </div>
             ))}
           </div>
@@ -450,40 +429,40 @@ export default function Projects() {
 
       {/* 4. Code Snippet Modal */}
       {isCodeSnippetModalOpen && selectedProject && (
-        <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div className="bg-white rounded-3xl shadow-[0_20px_80px_-15px_rgba(0,0,0,0.5)] border border-border-soft w-full max-w-3xl overflow-hidden animate-fade-in flex flex-col max-h-[90vh]">
-             <div className="px-8 py-5 border-b border-border-soft flex items-center justify-between bg-slate-50">
+        <div className="fixed inset-0 bg-slate-900/35 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <div className="bg-white rounded-2xl shadow-[0_24px_60px_-20px_rgba(15,23,42,0.45)] border border-slate-200 w-full max-w-3xl overflow-hidden animate-fade-in flex flex-col max-h-[90vh]">
+             <div className="px-6 py-4 border-b border-slate-200 flex items-center justify-between bg-white">
                <div>
-                 <h3 className="text-xl font-bold text-luxury-text tracking-tight mb-1">Integration Setup</h3>
-                 <p className="text-xs text-secondary font-medium">Add Heatwave analytics to your application</p>
+                 <h3 className="text-xl font-semibold text-luxury-text tracking-tight mb-1">Integration Setup</h3>
+                 <p className="text-sm text-secondary font-medium">Add UXRay analytics to your application</p>
                </div>
-               <button onClick={() => { setIsCodeSnippetModalOpen(false); setSelectedProject(null); }} className="w-8 h-8 flex items-center justify-center bg-white border border-slate-200 text-secondary hover:text-luxury-text rounded-full shadow-sm hover:scale-105 transition-all">
+               <button onClick={() => { setIsCodeSnippetModalOpen(false); setSelectedProject(null); }} className="w-9 h-9 flex items-center justify-center bg-white border border-slate-200 text-secondary hover:text-luxury-text rounded-full transition-colors">
                  <X size={16} />
                </button>
              </div>
              
-             <div className="p-8 overflow-y-auto custom-scrollbar flex flex-col gap-8">
+             <div className="p-6 overflow-y-auto custom-scrollbar flex flex-col gap-6 bg-slate-50/50">
                
-               <div className="flex flex-col gap-3">
+               <div className="flex flex-col gap-3 bg-white border border-slate-200 rounded-xl p-4">
                   <div className="flex items-center gap-3">
-                    <div className="w-6 h-6 rounded-full bg-luxury-blue text-white text-xs font-bold flex items-center justify-center shadow-md">1</div>
-                    <h4 className="text-sm font-bold text-luxury-text tracking-tight">Install the tracking package</h4>
+                    <div className="w-6 h-6 rounded-full bg-luxury-blue text-white text-xs font-semibold flex items-center justify-center">1</div>
+                    <h4 className="text-base font-semibold text-luxury-text tracking-tight">Install the tracking package</h4>
                   </div>
-                  <div className="ml-9 bg-[#1E1E1E] rounded-xl p-4 flex items-center justify-between group shadow-inner">
-                    <code className="text-[13px] font-mono text-emerald-400">npm <span className="text-slate-300">install</span> heatmap-tracker</code>
+                  <div className="ml-9 bg-slate-100 border border-slate-200 rounded-lg p-4 flex items-center justify-between group">
+                    <code className="text-[13px] font-mono text-emerald-700">npm <span className="text-slate-700">install</span> heatmap-tracker</code>
                     <button 
                       onClick={() => copyToClipboard('npm install heatmap-tracker', 'npm_copy')}
-                      className="text-slate-400 hover:text-white transition-colors"
+                      className="text-slate-500 hover:text-slate-700 transition-colors p-1"
                     >
                       {copiedId === 'npm_copy' ? <CheckCircle2 size={16} className="text-emerald-400" /> : <Copy size={16} />}
                     </button>
                   </div>
                </div>
 
-               <div className="flex flex-col gap-3">
+               <div className="flex flex-col gap-3 bg-white border border-slate-200 rounded-xl p-4">
                   <div className="flex items-center gap-3">
-                    <div className="w-6 h-6 rounded-full bg-luxury-blue text-white text-xs font-bold flex items-center justify-center shadow-md">2</div>
-                    <h4 className="text-sm font-bold text-luxury-text tracking-tight">Initialize inside your main entry point</h4>
+                    <div className="w-6 h-6 rounded-full bg-luxury-blue text-white text-xs font-semibold flex items-center justify-center">2</div>
+                    <h4 className="text-base font-semibold text-luxury-text tracking-tight">Initialize inside your main entry point</h4>
                   </div>
                   <div className="ml-9 relative group">
                     <div className="absolute top-4 right-4 z-10 flex gap-2">
@@ -496,18 +475,18 @@ const destroy = init({
   apiKey: 'YOUR_RAW_API_KEY_HERE', // Use environment variables
   endpoint: 'http://localhost:${import.meta.env.VITE_API_PORT || '3000'}/api/events'
 });`, 'code_copy')}
-                         className="flex items-center gap-1.5 px-3 py-1.5 bg-white/10 hover:bg-white/20 backdrop-blur border border-white/10 text-white rounded-lg text-xs font-bold transition-all"
+                        className="flex items-center gap-1.5 px-3 py-1.5 bg-white hover:bg-slate-50 border border-slate-200 text-slate-700 rounded-lg text-xs font-semibold transition-colors"
                        >
                          {copiedId === 'code_copy' ? <><CheckCircle2 size={12} className="text-emerald-400" /> Copied!</> : <><Copy size={12} /> Copy code</>}
                        </button>
                     </div>
-                    <pre className="bg-[#1E1E1E] rounded-xl p-5 overflow-x-auto text-[13px] font-mono leading-relaxed shadow-inner border border-slate-800">
-                      <span className="text-blue-400">import</span> {'{ init }'} <span className="text-blue-400">from</span> <span className="text-orange-300">'heatmap-tracker'</span>;{'\n\n'}
-                      <span className="text-emerald-600/70">// Initialize the tracker once on load</span>{'\n'}
-                      <span className="text-blue-400">const</span> <span className="text-yellow-200">destroy</span> = <span className="text-yellow-200">init</span>({'{'}{'\n'}
-                      {'  '}projectId: <span className="text-orange-300">'{selectedProject.projectId}'</span>,{'\n'}
-                      {'  '}apiKey: <span className="text-orange-300">'YOUR_RAW_API_KEY_HERE'</span>, <span className="text-emerald-600/70">// Ensure this is secure!</span>{'\n'}
-                      {'  '}endpoint: <span className="text-orange-300">'http://localhost:3000/api/events'</span>{'\n'}
+                    <pre className="bg-slate-100 rounded-lg p-5 overflow-x-auto text-[13px] font-mono leading-relaxed border border-slate-200">
+                      <span className="text-blue-700">import</span> {'{ init }'} <span className="text-blue-700">from</span> <span className="text-amber-700">'heatmap-tracker'</span>;{'\n\n'}
+                      <span className="text-emerald-700">// Initialize the tracker once on load</span>{'\n'}
+                      <span className="text-blue-700">const</span> <span className="text-slate-900">destroy</span> = <span className="text-slate-900">init</span>({'{'}{'\n'}
+                      {'  '}projectId: <span className="text-amber-700">'{selectedProject.projectId}'</span>,{'\n'}
+                      {'  '}apiKey: <span className="text-amber-700">'YOUR_RAW_API_KEY_HERE'</span>, <span className="text-emerald-700">// Ensure this is secure!</span>{'\n'}
+                      {'  '}endpoint: <span className="text-amber-700">'http://localhost:3000/api/events'</span>{'\n'}
                       {'}'});
                     </pre>
                   </div>

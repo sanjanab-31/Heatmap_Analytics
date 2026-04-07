@@ -75,21 +75,19 @@ export default function ScrollChart({ analytics, loading }) {
   const isEmpty = !loading && (!analytics || !analytics.scroll_depth || analytics.scroll_depth.every(v => v === 0));
 
   return (
-    <div className="relative w-full h-[320px] flex items-center justify-center group/chart">
+    <div className="relative w-full h-[300px] flex items-center justify-center">
       {loading ? (
-        <div className="flex flex-col items-center gap-4">
-           <div className="w-48 h-1.5 bg-slate-50 border border-slate-100 rounded-full overflow-hidden">
-              <div className="w-1/2 h-full bg-luxury-blue animate-[loading_2s_infinite]" />
-           </div>
-           <span className="text-[10px] font-black text-secondary uppercase tracking-[0.2em]">Profiling Funnel Dynamics...</span>
+        <div className="flex flex-col items-center gap-3">
+           <div className="w-7 h-7 rounded-full border-2 border-slate-200 border-t-luxury-blue animate-spin" />
+           <span className="text-xs font-medium text-secondary">Loading chart data...</span>
         </div>
       ) : isEmpty ? (
-        <div className="absolute inset-0 z-20 flex flex-col items-center justify-center bg-slate-50/50 backdrop-blur-[1px] rounded-xl text-center px-4">
-          <div className="w-16 h-16 bg-white rounded-full shadow-sm flex items-center justify-center text-luxury-blue mb-4 group-hover/chart:scale-110 transition-transform">
-            <ScrollText size={28} />
+        <div className="absolute inset-0 z-20 flex flex-col items-center justify-center bg-slate-50/70 rounded-xl text-center px-4">
+          <div className="w-12 h-12 bg-white rounded-full border border-slate-200 flex items-center justify-center text-luxury-blue mb-3">
+            <ScrollText size={22} />
            </div>
-           <p className="text-sm font-bold text-slate-400 font-heading">No data available yet</p>
-           <p className="text-[10px] text-slate-300 font-medium uppercase tracking-tighter mt-1">Start interacting with your website to generate insights</p>
+           <p className="text-sm font-semibold text-slate-500 font-heading">No data available yet</p>
+           <p className="text-xs text-slate-400 font-medium mt-1">Scroll behavior will appear once users interact with your pages.</p>
         </div>
       ) : (
         <Bar data={data} options={options} />

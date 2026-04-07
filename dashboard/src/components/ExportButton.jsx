@@ -87,27 +87,27 @@ export default function ExportButton({ data, filename = "export" }) {
       <button 
         onClick={() => setIsOpen(!isOpen)}
         disabled={!data}
-        className="flex items-center gap-2 px-4 py-[11px] bg-white border border-border-soft rounded-2xl text-sm font-bold text-luxury-text hover:bg-slate-50 transition-all duration-300 shadow-sm disabled:opacity-50 disabled:cursor-not-allowed h-[46px]"
+        className="h-10 w-[132px] box-border border border-slate-200 rounded-lg shadow-sm flex items-center justify-center gap-1.5 bg-white text-xs font-semibold leading-none text-luxury-text hover:bg-slate-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
       >
-        <Download size={16} />
+        <Download size={14} className="text-slate-600" />
         Export
-        <ChevronDown size={14} className={`transition-transform duration-300 ${isOpen ? 'rotate-180' : ''}`} />
+        <ChevronDown size={12} className={`text-slate-500 transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`} />
       </button>
 
       {isOpen && (
-        <div className="absolute right-0 mt-2 w-48 bg-white border border-border-soft rounded-xl shadow-lg flex flex-col p-1.5 z-50 animate-fade-in">
+        <div className="absolute right-0 mt-2 w-44 bg-white border border-slate-200 rounded-lg shadow-lg flex flex-col p-1 z-50 animate-fade-in">
           <button 
             onClick={handleExportCSV}
-            className="flex items-center gap-3 px-3 py-2 text-sm font-bold text-luxury-text hover:bg-slate-50 rounded-lg transition-colors text-left"
+            className="flex items-center gap-2.5 px-2.5 py-2 text-xs font-semibold text-luxury-text hover:bg-slate-50 rounded-md transition-colors text-left"
           >
-            <FileSpreadsheet size={16} className="text-emerald-600" />
+            <FileSpreadsheet size={14} className="text-emerald-600" />
             Basic CSV
           </button>
           <button 
             onClick={handleExportJSON}
-            className="flex items-center gap-3 px-3 py-2 text-sm font-bold text-luxury-text hover:bg-slate-50 rounded-lg transition-colors text-left"
+            className="flex items-center gap-2.5 px-2.5 py-2 text-xs font-semibold text-luxury-text hover:bg-slate-50 rounded-md transition-colors text-left"
           >
-            <FileJson size={16} className="text-luxury-blue" />
+            <FileJson size={14} className="text-luxury-blue" />
             Raw JSON
           </button>
         </div>

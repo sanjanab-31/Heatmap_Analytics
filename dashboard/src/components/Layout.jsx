@@ -63,12 +63,16 @@ export default function Layout() {
         
         {/* Brand */}
         <NavLink to="/" className="flex items-center gap-3 mb-8 group cursor-pointer no-underline">
-          <div className="w-10 h-10 bg-luxury-blue rounded-lg flex items-center justify-center text-white shadow-sm">
-            <Zap size={18} fill="currentColor" />
+          <div className="w-10 h-10 rounded-lg bg-white overflow-hidden flex items-center justify-center">
+            <img
+              src="/WhatsApp%20Image%202026-04-07%20at%202.08.58%20PM.jpeg"
+              alt="UXRay logo"
+              className="w-8 h-8 object-contain"
+            />
           </div>
           <div className="flex flex-col">
             <span className="text-base font-bold font-heading text-luxury-text leading-tight group-hover:text-luxury-blue transition-colors">
-              Heatwave
+              UXRay
             </span>
             <span className="text-[11px] text-secondary font-medium">Analytics Console</span>
           </div>
@@ -146,10 +150,10 @@ export default function Layout() {
             
             {/* Notifications Dropdown Panel */}
             {showNotifications && (
-              <div className="absolute top-14 right-14 w-80 bg-white border border-slate-200 rounded-xl shadow-premium overflow-hidden z-50 animate-fade-in origin-top-right">
-                <div className="p-4 border-b border-slate-200 flex items-center justify-between bg-slate-50/70">
-                  <h3 className="text-sm font-bold text-luxury-text">Notifications</h3>
-                  <span className="text-[10px] font-semibold text-luxury-blue bg-blue-100 px-2 py-0.5 rounded-full">{notifications.length} New</span>
+              <div className="absolute top-14 right-14 w-80 bg-white border border-slate-200 rounded-lg shadow-lg overflow-hidden z-50 animate-fade-in origin-top-right">
+                <div className="p-4 border-b border-slate-200 flex items-center justify-between bg-slate-50">
+                  <h3 className="text-sm font-semibold text-luxury-text">Notifications</h3>
+                  <span className="text-[10px] font-semibold text-luxury-blue bg-blue-50 border border-blue-100 px-2 py-0.5 rounded-full">{notifications.length} New</span>
                 </div>
                 <div className="flex flex-col max-h-[320px] overflow-y-auto custom-scrollbar">
                   {notifications.length === 0 ? (
@@ -157,11 +161,11 @@ export default function Layout() {
                   ) : (
                     notifications.map((notification) => (
                       <div key={notification.id} className="p-4 border-b border-slate-100 hover:bg-slate-50 transition-colors cursor-pointer flex gap-3">
-                        <div className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center shrink-0">
-                          <Bell size={14} className="text-blue-600" />
+                        <div className="w-8 h-8 rounded-lg bg-blue-50 border border-blue-100 flex items-center justify-center shrink-0">
+                          <Bell size={13} className="text-luxury-blue" />
                         </div>
                         <div className="flex flex-col">
-                          <p className="text-sm font-medium text-luxury-text leading-tight">{notification.title}</p>
+                          <p className="text-sm font-semibold text-luxury-text leading-tight">{notification.title}</p>
                           <p className="text-xs text-secondary mt-1">{notification.message}</p>
                           <p className="text-[10px] text-slate-400 font-medium mt-2">{notification.timeAgo}</p>
                         </div>
@@ -170,7 +174,7 @@ export default function Layout() {
                   )}
 
                 </div>
-                <div className="p-3 border-t border-slate-200 bg-slate-50/70 text-center cursor-pointer hover:bg-slate-100 transition-colors">
+                <div className="p-3 border-t border-slate-200 bg-slate-50 text-center cursor-pointer hover:bg-slate-100 transition-colors">
                   <span className="text-xs font-semibold text-luxury-blue">Mark all as read</span>
                 </div>
               </div>

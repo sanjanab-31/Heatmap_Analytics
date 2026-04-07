@@ -86,19 +86,19 @@ export default function ClickChart({ analytics, loading }) {
   const isEmpty = !loading && (!analytics || !analytics.clicks_by_hour || analytics.clicks_by_hour.every(v => v === 0));
 
   return (
-    <div className="relative w-full h-[450px] flex items-center justify-center group/chart">
+    <div className="relative w-full h-[440px] flex items-center justify-center">
       {loading ? (
-        <div className="flex flex-col items-center gap-5">
-           <div className="w-10 h-10 rounded-2xl border-t-luxury-blue border-slate-100 border-4 animate-spin shadow-sm" />
-           <p className="text-[10px] font-black text-secondary uppercase tracking-[0.2em] animate-pulse">Compiling Engine...</p>
+        <div className="flex flex-col items-center gap-3">
+           <div className="w-7 h-7 rounded-full border-2 border-slate-200 border-t-luxury-blue animate-spin" />
+           <p className="text-xs font-medium text-secondary">Loading chart data...</p>
         </div>
       ) : isEmpty ? (
-        <div className="absolute inset-0 z-20 flex flex-col items-center justify-center bg-slate-50/50 backdrop-blur-[1px] rounded-xl text-center px-4">
-          <div className="w-16 h-16 bg-white rounded-full shadow-sm flex items-center justify-center text-luxury-blue mb-4 group-hover/chart:scale-110 transition-transform">
-            <BarChart3 size={28} />
+        <div className="absolute inset-0 z-20 flex flex-col items-center justify-center bg-slate-50/70 rounded-xl text-center px-4">
+          <div className="w-12 h-12 bg-white rounded-full border border-slate-200 flex items-center justify-center text-luxury-blue mb-3">
+            <BarChart3 size={22} />
            </div>
-           <p className="text-sm font-bold text-slate-400 font-heading">No data available yet</p>
-           <p className="text-[10px] text-slate-300 font-medium uppercase tracking-tighter mt-1">Start interacting with your website to generate insights</p>
+           <p className="text-sm font-semibold text-slate-500 font-heading">No data available yet</p>
+           <p className="text-xs text-slate-400 font-medium mt-1">Start interacting with the website to generate analytics.</p>
         </div>
       ) : (
         <Bar data={data} options={options} />
