@@ -1,8 +1,9 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useHeatmapData } from '../hooks/useHeatmapData';
 import { useAnalytics }   from '../hooks/useAnalytics';
 import { ArrowRight } from 'lucide-react';
+import { fetchProjects } from '../api/client';
 
 import FilterBar   from '../components/FilterBar';
 import ExportButton from '../components/ExportButton';
@@ -21,6 +22,37 @@ export default function Dashboard() {
 
   const { data, total, loading: hmLoading, error: hmError } = useHeatmapData(filters);
   const { analytics,   loading: anLoading, error: anError } = useAnalytics(filters);
+
+  useEffect(() => {
+    let mounted = true;
+
+    const preloadFilters = async () => {
+      const projects = await fetchProjects();
+      if (!mounted || !Array.isArray(projects) || projects.length === 0) {
+        return;
+      }
+
+      const first = projects[0];
+      setFilters((prev) => {
+        if (prev.projectId && prev.pageUrl) {
+          return prev;
+        }
+
+        return {
+          projectId: prev.projectId || first.projectId || '',
+          pageUrl: prev.pageUrl || '',
+        };
+      });
+    };
+
+    preloadFilters().catch(() => {
+      // Keep manual filter entry available if preload fails.
+    });
+
+    return () => {
+      mounted = false;
+    };
+  }, []);
 
   return (
     <div className="flex flex-col gap-10 animate-fade-in pb-10">

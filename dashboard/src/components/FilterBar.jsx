@@ -1,9 +1,17 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { RefreshCw, Fingerprint, Globe } from 'lucide-react';
 
 export default function FilterBar({ projectId, pageUrl, onFilter }) {
   const [pId, setPId] = useState(projectId || '');
   const [url, setUrl] = useState(pageUrl || '');
+
+  useEffect(() => {
+    setPId(projectId || '');
+  }, [projectId]);
+
+  useEffect(() => {
+    setUrl(pageUrl || '');
+  }, [pageUrl]);
 
   const handleSubmit = (e) => {
     e.preventDefault();

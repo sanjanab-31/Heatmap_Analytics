@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { fetchHeatmapData } from '../api/client';
 
-const REFRESH_INTERVAL_MS = 30_000;
+const REFRESH_INTERVAL_MS = 5_000;
 
 /**
  * Fetches click-point data for the heatmap.
@@ -48,7 +48,7 @@ export function useHeatmapData(filters = {}) {
 
   useEffect(() => {
     // ── Reset to empty state when required filters are missing ──────
-    if (!projectId || !pageUrl) {
+    if (!projectId) {
       setData([]);
       setTotal(0);
       setLoading(false);

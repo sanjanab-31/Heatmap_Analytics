@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { fetchAnalytics } from '../api/client';
 
-const REFRESH_INTERVAL_MS = 30_000;
+const REFRESH_INTERVAL_MS = 5_000;
 
 /**
  * Fetches aggregated analytics data.
@@ -43,7 +43,7 @@ export function useAnalytics(filters = {}) {
 
   useEffect(() => {
     // ── Reset when required filters are missing ─────────────────────
-    if (!projectId || !pageUrl) {
+    if (!projectId) {
       setAnalytics(null);
       setLoading(false);
       setError(null);

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ArrowLeft, BarChart3, PieChart, FlaskConical } from 'lucide-react';
 import { useAnalytics } from '../hooks/useAnalytics';
@@ -6,6 +6,7 @@ import ClickChart from '../components/ClickChart';
 import ScrollChart from '../components/ScrollChart';
 import FilterBar from '../components/FilterBar';
 import ExportButton from '../components/ExportButton';
+import { fetchProjects } from '../api/client';
 
 export default function Analytics() {
   const navigate = useNavigate();
@@ -15,6 +16,37 @@ export default function Analytics() {
   });
 
   const { analytics, loading: anLoading, error: anError } = useAnalytics(filters);
+
+  useEffect(() => {
+    let mounted = true;
+
+    const preloadFilters = async () => {
+      const projects = await fetchProjects();
+      if (!mounted || !Array.isArray(projects) || projects.length === 0) {
+        return;
+      }
+
+      const first = projects[0];
+      setFilters((prev) => {
+        if (prev.projectId && prev.pageUrl) {
+          return prev;
+        }
+
+        return {
+          projectId: prev.projectId || first.projectId || '',
+          pageUrl: prev.pageUrl || '',
+        };
+      });
+    };
+
+    preloadFilters().catch(() => {
+      // Keep manual filter entry available if preload fails.
+    });
+
+    return () => {
+      mounted = false;
+    };
+  }, []);
 
   return (
     <div className="flex flex-col gap-10 animate-fade-in">
