@@ -15,8 +15,8 @@ export default function TopElements({ loading, data = [] }) {
   if (isEmpty) {
     return (
       <div className="glass-card p-12 flex flex-col items-center justify-center text-center gap-4 bg-slate-50/50 group/elements">
-        <div className="w-16 h-16 bg-white rounded-full shadow-sm flex items-center justify-center text-2xl mb-2 group-hover/elements:scale-110 transition-transform">
-          🖱️
+        <div className="w-16 h-16 bg-white rounded-full shadow-sm flex items-center justify-center text-luxury-blue mb-2 group-hover/elements:scale-110 transition-transform">
+          <MousePointer2 size={28} />
         </div>
         <div className="flex flex-col gap-1">
           <h3 className="text-sm font-bold text-slate-400 font-heading">No data available yet</h3>
