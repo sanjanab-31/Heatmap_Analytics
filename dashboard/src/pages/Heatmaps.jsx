@@ -6,7 +6,7 @@ import HeatmapView from '../components/HeatmapView';
 import FilterBar from '../components/FilterBar';
 
 const DEFAULT_PROJECT = 'test-project-001';
-const DEFAULT_PAGE    = 'http://localhost/test';
+const DEFAULT_PAGE    = 'https://example.com/home';
 
 export default function Heatmaps() {
   const navigate = useNavigate();
@@ -45,7 +45,7 @@ export default function Heatmaps() {
       <div className="glass-card p-10 min-h-[750px] flex flex-col relative">
         <div className="w-full h-full flex flex-col gap-10">
            <div className="flex-1 min-h-[600px]">
-              <HeatmapView data={data} total={total} loading={hmLoading} error={hmError} largeHeight={600} />
+              <HeatmapView data={data} total={total} loading={hmLoading} error={hmError} largeHeight={600} pageUrl={filters.pageUrl} />
            </div>
            
            {/* Legend & Stats Overlay */}

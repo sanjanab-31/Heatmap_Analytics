@@ -4,7 +4,7 @@ import h337 from 'heatmap.js';
 /**
  * HeatmapView — A premium, Tailwind-integrated heatmap visualization.
  */
-export default function HeatmapView({ data = [], total = 0, loading = false, error = null, largeHeight = 440 }) {
+export default function HeatmapView({ data = [], total = 0, loading = false, error = null, largeHeight = 440, pageUrl }) {
   const containerRef = useRef(null);
   const heatmapInstance = useRef(null);
 
@@ -67,14 +67,53 @@ export default function HeatmapView({ data = [], total = 0, loading = false, err
 
   const isEmpty = !loading && !error && (!data || data.length === 0);
 
+  // Calculate the top hotspot
+  const topHotspot = data && data.length > 0 
+    ? [...data].sort((a, b) => (b.value || 1) - (a.value || 1))[0] 
+    : null;
+
   return (
     <div className="relative w-full h-full flex flex-col group/heatmap">
       {/* ── Main Canvas Container ────────────────────────────────────── */}
       <div
         ref={containerRef}
-        className="w-full relative overflow-hidden transition-all duration-700 bg-slate-50/30 rounded-xl"
+        className="w-full relative overflow-hidden transition-all duration-700 bg-slate-900 rounded-xl shadow-inner border border-slate-200"
         style={{ height: largeHeight }}
       >
+        {/* Background Website Representation */}
+        {pageUrl ? (
+          <div className="absolute inset-0 z-0 bg-white">
+            <div className="w-full h-8 bg-slate-100 border-b border-slate-200 flex items-center px-4 gap-2">
+              <div className="flex gap-1.5">
+                <div className="w-3 h-3 rounded-full bg-red-400" />
+                <div className="w-3 h-3 rounded-full bg-amber-400" />
+                <div className="w-3 h-3 rounded-full bg-emerald-400" />
+              </div>
+              <div className="mx-auto w-1/2 max-w-sm h-5 bg-white rounded-md border border-slate-200 flex items-center px-3 text-[10px] text-slate-400 font-mono truncate">
+                {pageUrl}
+              </div>
+            </div>
+            <iframe 
+              src={pageUrl} 
+              title="Site Background"
+              className="w-full h-[calc(100%-2rem)] border-none opacity-40 grayscale pointer-events-none"
+            />
+          </div>
+        ) : (
+          <div className="absolute inset-0 z-0 bg-slate-50 opacity-50 diagram-pattern" />
+        )}
+
+        {/* Top Hotspot Label */}
+        {topHotspot && !loading && !error && (
+          <div 
+            className="absolute z-40 bg-red-600 text-white text-[10px] uppercase font-black tracking-widest px-3 py-1.5 rounded-lg shadow-xl pointer-events-none transform -translate-x-1/2 -translate-y-full mb-3 animate-bounce"
+            style={{ left: topHotspot.x, top: topHotspot.y }}
+          >
+            #1 Hotspot
+            <div className="absolute top-full left-1/2 -translate-x-1/2 border-[6px] border-transparent border-t-red-600" />
+          </div>
+        )}
+
         {/* Loading Overlay */}
         {(loading || error) && (
           <div className="absolute inset-0 bg-white/60 backdrop-blur-sm z-30 flex flex-col items-center justify-center gap-4 animate-fade-in">
@@ -100,8 +139,8 @@ export default function HeatmapView({ data = [], total = 0, loading = false, err
              <div className="w-16 h-16 bg-white rounded-full shadow-sm flex items-center justify-center text-2xl mb-4 group-hover/heatmap:scale-110 transition-transform">
                 🖱️
              </div>
-             <p className="text-sm font-bold text-slate-400 font-heading">No Visual Data Yet</p>
-             <p className="text-[10px] text-slate-300 font-medium uppercase tracking-tighter">Please initiate interaction tracking</p>
+             <p className="text-sm font-bold text-slate-400 font-heading">No data available yet</p>
+             <p className="text-[10px] text-slate-300 font-medium uppercase tracking-tighter">Start interacting with your website to generate insights</p>
           </div>
         )}
       </div>
@@ -119,13 +158,28 @@ export default function HeatmapView({ data = [], total = 0, loading = false, err
            </div>
         </div>
 
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-6">
            <div className="flex flex-col items-end">
-              <span className="text-[10px] uppercase font-bold text-slate-400">Total Samples</span>
-              <span className="text-sm font-bold text-luxury-blue tabular-nums">{total.toLocaleString()} Events</span>
+              <span className="text-[10px] uppercase font-black tracking-widest text-slate-400">Total Interactions</span>
+              <span className="text-lg font-black text-space-900 tabular-nums">{total.toLocaleString()}</span>
            </div>
-           <div className="w-8 h-8 rounded-lg bg-luxury-blue/10 flex items-center justify-center text-luxury-blue">
-              📍
+           
+           <div className="h-8 w-[1px] bg-slate-200" />
+           
+           <div className="flex items-center gap-3">
+              <div className="flex flex-col items-end">
+                 <span className="text-[10px] uppercase font-black tracking-widest text-slate-400">Peak Density</span>
+                 {topHotspot ? (
+                   <span className="text-sm font-bold text-red-500 tabular-nums">
+                     ({topHotspot.x}x, {topHotspot.y}y)
+                   </span>
+                 ) : (
+                   <span className="text-sm font-bold text-slate-400">N/A</span>
+                 )}
+              </div>
+              <div className="w-10 h-10 rounded-xl bg-red-50 flex items-center justify-center text-red-500 border border-red-100">
+                 🔥
+              </div>
            </div>
         </div>
       </div>

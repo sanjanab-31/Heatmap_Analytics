@@ -82,12 +82,22 @@ export default function ClickChart({ analytics, loading }) {
     },
   };
 
+  const isEmpty = !loading && (!analytics || !analytics.clicks_by_hour || analytics.clicks_by_hour.every(v => v === 0));
+
   return (
-    <div className="relative w-full h-[450px] flex items-center justify-center">
+    <div className="relative w-full h-[450px] flex items-center justify-center group/chart">
       {loading ? (
         <div className="flex flex-col items-center gap-5">
            <div className="w-10 h-10 rounded-2xl border-t-luxury-blue border-slate-100 border-4 animate-spin shadow-sm" />
            <p className="text-[10px] font-black text-secondary uppercase tracking-[0.2em] animate-pulse">Compiling Engine...</p>
+        </div>
+      ) : isEmpty ? (
+        <div className="absolute inset-0 z-20 flex flex-col items-center justify-center bg-slate-50/50 backdrop-blur-[1px] rounded-xl text-center px-4">
+           <div className="w-16 h-16 bg-white rounded-full shadow-sm flex items-center justify-center text-2xl mb-4 group-hover/chart:scale-110 transition-transform">
+              📊
+           </div>
+           <p className="text-sm font-bold text-slate-400 font-heading">No data available yet</p>
+           <p className="text-[10px] text-slate-300 font-medium uppercase tracking-tighter mt-1">Start interacting with your website to generate insights</p>
         </div>
       ) : (
         <Bar data={data} options={options} />
