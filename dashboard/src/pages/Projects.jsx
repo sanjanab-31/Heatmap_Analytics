@@ -488,15 +488,13 @@ export default function Projects() {
                   <div className="ml-9 relative group">
                     <div className="absolute top-4 right-4 z-10 flex gap-2">
                        <button 
-                         onClick={() => copyToClipboard(`import { initHeatmap } from 'heatmap-tracker';
+                         onClick={() => copyToClipboard(`import { init } from 'heatmap-tracker';
 
 // Initialize the tracker once on load
-initHeatmap({
+const destroy = init({
   projectId: '${selectedProject.projectId}',
-  apiKey: 'YOUR_RAW_API_KEY_HERE', // Use environment variables!
-  apiUrl: 'http://localhost:${import.meta.env.VITE_API_PORT || '3000'}/api/events', // Adjust for production
-  batchInterval: 5000,
-  debug: true
+  apiKey: 'YOUR_RAW_API_KEY_HERE', // Use environment variables
+  endpoint: 'http://localhost:${import.meta.env.VITE_API_PORT || '3000'}/api/events'
 });`, 'code_copy')}
                          className="flex items-center gap-1.5 px-3 py-1.5 bg-white/10 hover:bg-white/20 backdrop-blur border border-white/10 text-white rounded-lg text-xs font-bold transition-all"
                        >
@@ -504,14 +502,12 @@ initHeatmap({
                        </button>
                     </div>
                     <pre className="bg-[#1E1E1E] rounded-xl p-5 overflow-x-auto text-[13px] font-mono leading-relaxed shadow-inner border border-slate-800">
-                      <span className="text-blue-400">import</span> {'{ initHeatmap }'} <span className="text-blue-400">from</span> <span className="text-orange-300">'heatmap-tracker'</span>;{'\n\n'}
+                      <span className="text-blue-400">import</span> {'{ init }'} <span className="text-blue-400">from</span> <span className="text-orange-300">'heatmap-tracker'</span>;{'\n\n'}
                       <span className="text-emerald-600/70">// Initialize the tracker once on load</span>{'\n'}
-                      <span className="text-yellow-200">initHeatmap</span>({'{'}{'\n'}
+                      <span className="text-blue-400">const</span> <span className="text-yellow-200">destroy</span> = <span className="text-yellow-200">init</span>({'{'}{'\n'}
                       {'  '}projectId: <span className="text-orange-300">'{selectedProject.projectId}'</span>,{'\n'}
                       {'  '}apiKey: <span className="text-orange-300">'YOUR_RAW_API_KEY_HERE'</span>, <span className="text-emerald-600/70">// Ensure this is secure!</span>{'\n'}
-                      {'  '}apiUrl: <span className="text-orange-300">'http://localhost:3000/api/events'</span>,{'\n'}
-                      {'  '}batchInterval: <span className="text-[#B5CEA8]">5000</span>,{'\n'}
-                      {'  '}debug: <span className="text-[#569CD6]">true</span>{'\n'}
+                      {'  '}endpoint: <span className="text-orange-300">'http://localhost:3000/api/events'</span>{'\n'}
                       {'}'});
                     </pre>
                   </div>

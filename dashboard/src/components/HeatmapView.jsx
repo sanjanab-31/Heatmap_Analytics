@@ -1,5 +1,4 @@
 import { useEffect, useRef } from 'react';
-import h337 from 'heatmap.js';
 
 /**
  * HeatmapView — A premium, Tailwind-integrated heatmap visualization.
@@ -11,9 +10,10 @@ export default function HeatmapView({ data = [], total = 0, loading = false, err
   // ── Initialize Heatmap Instance ────────────────────────────────────
   useEffect(() => {
     if (!containerRef.current) return;
+    if (!window.h337) return;
 
     // Create the instance once on mount
-    heatmapInstance.current = h337.create({
+    heatmapInstance.current = window.h337.create({
       container: containerRef.current,
       maxOpacity: 0.8,
       radius: 40,

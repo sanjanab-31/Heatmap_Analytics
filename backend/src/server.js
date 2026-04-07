@@ -7,6 +7,7 @@ const mongoose = require("mongoose");
 const eventsRouter = require("./routes/events");
 const heatmapRouter = require("./routes/heatmap");
 const analyticsRouter = require("./routes/analytics");
+const projectsRouter = require("./routes/projects");
 const { eventIngestionLimiter, getRoutesLimiter } = require("./middleware/rateLimit");
 
 const app = express();
@@ -63,6 +64,7 @@ app.get("/health", (_req, res) => {
 app.use("/api/events", eventIngestionLimiter, eventsRouter);
 app.use("/api/heatmap", getRoutesLimiter, heatmapRouter);
 app.use("/api/analytics", getRoutesLimiter, analyticsRouter);
+app.use("/api/projects", getRoutesLimiter, projectsRouter);
 
 app.use((_req, res) => {
 	res.status(404).json({ error: "Route not found" });
