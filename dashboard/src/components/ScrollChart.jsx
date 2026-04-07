@@ -71,14 +71,24 @@ export default function ScrollChart({ analytics, loading }) {
     },
   };
 
+  const isEmpty = !loading && (!analytics || !analytics.scroll_depth || analytics.scroll_depth.every(v => v === 0));
+
   return (
-    <div className="relative w-full h-[320px] flex items-center justify-center">
+    <div className="relative w-full h-[320px] flex items-center justify-center group/chart">
       {loading ? (
         <div className="flex flex-col items-center gap-4">
            <div className="w-48 h-1.5 bg-slate-50 border border-slate-100 rounded-full overflow-hidden">
               <div className="w-1/2 h-full bg-luxury-blue animate-[loading_2s_infinite]" />
            </div>
            <span className="text-[10px] font-black text-secondary uppercase tracking-[0.2em]">Profiling Funnel Dynamics...</span>
+        </div>
+      ) : isEmpty ? (
+        <div className="absolute inset-0 z-20 flex flex-col items-center justify-center bg-slate-50/50 backdrop-blur-[1px] rounded-xl text-center px-4">
+           <div className="w-16 h-16 bg-white rounded-full shadow-sm flex items-center justify-center text-2xl mb-4 group-hover/chart:scale-110 transition-transform">
+              📜
+           </div>
+           <p className="text-sm font-bold text-slate-400 font-heading">No data available yet</p>
+           <p className="text-[10px] text-slate-300 font-medium uppercase tracking-tighter mt-1">Start interacting with your website to generate insights</p>
         </div>
       ) : (
         <Bar data={data} options={options} />

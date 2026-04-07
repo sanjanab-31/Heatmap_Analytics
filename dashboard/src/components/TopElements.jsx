@@ -9,11 +9,27 @@ const MOCK_ELEMENTS = [
   { id: 5, name: 'a.footer-discord', label: 'Footer Discord Icon', clicks: 425, percentage: 5 },
 ];
 
-export default function TopElements({ loading }) {
+export default function TopElements({ loading, data = MOCK_ELEMENTS }) {
+  const isEmpty = !loading && (!data || data.length === 0);
+
   if (loading) {
     return (
       <div className="glass-card p-6 h-64 flex items-center justify-center animate-pulse">
         <div className="w-8 h-8 border-4 border-luxury-blue border-r-transparent rounded-full animate-spin" />
+      </div>
+    );
+  }
+
+  if (isEmpty) {
+    return (
+      <div className="glass-card p-12 flex flex-col items-center justify-center text-center gap-4 bg-slate-50/50 group/elements">
+        <div className="w-16 h-16 bg-white rounded-full shadow-sm flex items-center justify-center text-2xl mb-2 group-hover/elements:scale-110 transition-transform">
+          🖱️
+        </div>
+        <div className="flex flex-col gap-1">
+          <h3 className="text-sm font-bold text-slate-400 font-heading">No data available yet</h3>
+          <p className="text-[10px] text-slate-300 font-medium uppercase tracking-tighter">Start interacting with your website to generate insights</p>
+        </div>
       </div>
     );
   }

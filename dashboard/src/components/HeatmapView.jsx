@@ -139,8 +139,8 @@ export default function HeatmapView({ data = [], total = 0, loading = false, err
              <div className="w-16 h-16 bg-white rounded-full shadow-sm flex items-center justify-center text-2xl mb-4 group-hover/heatmap:scale-110 transition-transform">
                 🖱️
              </div>
-             <p className="text-sm font-bold text-slate-400 font-heading">No Visual Data Yet</p>
-             <p className="text-[10px] text-slate-300 font-medium uppercase tracking-tighter">Please initiate interaction tracking</p>
+             <p className="text-sm font-bold text-slate-400 font-heading">No data available yet</p>
+             <p className="text-[10px] text-slate-300 font-medium uppercase tracking-tighter">Start interacting with your website to generate insights</p>
           </div>
         )}
       </div>

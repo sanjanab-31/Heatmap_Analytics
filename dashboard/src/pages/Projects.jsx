@@ -191,10 +191,10 @@ export default function Projects() {
                 <FolderPlus size={32} />
              </div>
              <div className="flex flex-col gap-1.5">
-               <h3 className="text-lg font-bold text-luxury-text">No projects found</h3>
-               <p className="text-secondary text-sm max-w-sm">Create your first project to generate an API key and start tracking analytics for your domain.</p>
+               <h3 className="text-sm font-bold text-slate-400 font-heading">No data available yet</h3>
+               <p className="text-[10px] text-slate-300 font-medium uppercase tracking-tighter">Start interacting with your website to generate insights</p>
              </div>
-             <button onClick={() => setIsCreateModalOpen(true)} className="mt-4 text-luxury-blue font-bold text-sm tracking-wide uppercase hover:underline flex items-center gap-1.5">
+             <button onClick={() => setIsCreateModalOpen(true)} className="mt-4 text-luxury-blue font-bold text-sm tracking-wide uppercase hover:underline flex items-center gap-1.5 focus:outline-none">
                Create Now <Play size={14} fill="currentColor" />
              </button>
           </div>
