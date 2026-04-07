@@ -1,4 +1,5 @@
 import { Bar } from 'react-chartjs-2';
+import { ScrollText } from 'lucide-react';
 import {
   Chart as ChartJS,
   CategoryScale,
@@ -84,8 +85,8 @@ export default function ScrollChart({ analytics, loading }) {
         </div>
       ) : isEmpty ? (
         <div className="absolute inset-0 z-20 flex flex-col items-center justify-center bg-slate-50/50 backdrop-blur-[1px] rounded-xl text-center px-4">
-           <div className="w-16 h-16 bg-white rounded-full shadow-sm flex items-center justify-center text-2xl mb-4 group-hover/chart:scale-110 transition-transform">
-              📜
+          <div className="w-16 h-16 bg-white rounded-full shadow-sm flex items-center justify-center text-luxury-blue mb-4 group-hover/chart:scale-110 transition-transform">
+            <ScrollText size={28} />
            </div>
            <p className="text-sm font-bold text-slate-400 font-heading">No data available yet</p>
            <p className="text-[10px] text-slate-300 font-medium uppercase tracking-tighter mt-1">Start interacting with your website to generate insights</p>

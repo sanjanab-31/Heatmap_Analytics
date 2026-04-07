@@ -1,4 +1,5 @@
 import { useEffect, useRef } from 'react';
+import { AlertTriangle, MousePointer2, Flame } from 'lucide-react';
 
 /**
  * HeatmapView — A premium, Tailwind-integrated heatmap visualization.
@@ -121,7 +122,7 @@ export default function HeatmapView({ data = [], total = 0, loading = false, err
              )}
              {error && (
                <>
-                 <span className="text-3xl">⚠️</span>
+                 <AlertTriangle size={28} className="text-red-500" />
                  <p className="text-xs font-bold text-red-500">{error}</p>
                  <button onClick={() => window.location.reload()} className="text-[10px] uppercase font-bold text-luxury-blue underline">Retry Connection</button>
                </>
@@ -132,8 +133,8 @@ export default function HeatmapView({ data = [], total = 0, loading = false, err
         {/* Empty State */}
         {isEmpty && !loading && !error && (
           <div className="absolute inset-0 z-20 flex flex-col items-center justify-center bg-slate-50/50 backdrop-blur-[1px]">
-             <div className="w-16 h-16 bg-white rounded-full shadow-sm flex items-center justify-center text-2xl mb-4 group-hover/heatmap:scale-110 transition-transform">
-                🖱️
+             <div className="w-16 h-16 bg-white rounded-full shadow-sm flex items-center justify-center text-luxury-blue mb-4 group-hover/heatmap:scale-110 transition-transform">
+               <MousePointer2 size={28} />
              </div>
              <p className="text-sm font-bold text-slate-400 font-heading">No data available yet</p>
              <p className="text-[10px] text-slate-300 font-medium uppercase tracking-tighter">Start interacting with your website to generate insights</p>
@@ -174,7 +175,7 @@ export default function HeatmapView({ data = [], total = 0, loading = false, err
                  )}
               </div>
               <div className="w-10 h-10 rounded-xl bg-red-50 flex items-center justify-center text-red-500 border border-red-100">
-                 🔥
+                  <Flame size={18} />
               </div>
            </div>
         </div>
