@@ -18,12 +18,6 @@ export default function Heatmaps() {
     <div className="flex flex-col gap-8 animate-fade-in">
       <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-6">
         <div className="flex items-center gap-5">
-          <button 
-            onClick={() => navigate('/')}
-            className="w-12 h-12 rounded-2xl bg-white border border-border-soft flex items-center justify-center hover:bg-slate-50 transition-all duration-300 shadow-sm hover:shadow-md text-luxury-text"
-          >
-            <ArrowLeft size={20} strokeWidth={2.5} />
-          </button>
           <div className="flex flex-col gap-0.5">
             <h1 className="text-3xl font-bold font-heading text-luxury-text capitalize tracking-tight">
               Detailed Heatmap Analysis
