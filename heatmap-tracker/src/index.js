@@ -1,31 +1,66 @@
-import { requestConsent } from "./consent";
-import { HeatmapTracker } from "./tracker";
+import { clearConsent, hasConsent, showConsentBanner } from "./consent";
+import { startSender, stopSender } from "./sender";
+import { startTracking, stopTracking } from "./tracker";
 
-export async function initHeatmapTracker(options = {}) {
-  const tracker = new HeatmapTracker(options);
-  const consentGranted = options.requireConsent === false ? true : await requestConsent(options.consent || {});
+let activeDestroy = null;
+const CONSENT_KEY = "heatmap_consent";
 
-  if (!consentGranted) {
-    return {
-      started: false,
-      start: () => {},
-      stop: () => {},
-      tracker,
-    };
-  }
-
-  tracker.start();
-
-  return {
-    started: true,
-    start: () => tracker.start(),
-    stop: () => tracker.stop(),
-    tracker,
-  };
+function startRuntime(queue, endpoint, projectId, apiKey) {
+  startTracking(queue);
+  startSender(queue, endpoint, projectId, apiKey);
 }
 
-if (typeof window !== "undefined") {
-  window.HeatmapTracker = {
-    init: initHeatmapTracker,
+export function init({ apiKey = "", endpoint = "", projectId = "" } = {}) {
+  if (typeof activeDestroy === "function") {
+    activeDestroy();
+  }
+
+  const queue = [];
+  let isActive = false;
+
+  const destroy = () => {
+    if (!isActive) {
+      return;
+    }
+
+    stopTracking();
+    stopSender();
+    isActive = false;
   };
+
+  const start = () => {
+    if (isActive) {
+      return;
+    }
+
+    startRuntime(queue, endpoint, projectId, apiKey);
+    isActive = true;
+  };
+
+  if (hasConsent()) {
+    start();
+  } else {
+    let consentState = null;
+
+    try {
+      consentState = window.localStorage.getItem(CONSENT_KEY);
+    } catch (error) {
+      consentState = null;
+    }
+
+    if (consentState === null) {
+      clearConsent();
+      showConsentBanner(
+        () => {
+          start();
+        },
+        () => {
+          destroy();
+        }
+      );
+    }
+  }
+
+  activeDestroy = destroy;
+  return destroy;
 }
