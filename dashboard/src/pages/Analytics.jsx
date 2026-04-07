@@ -5,6 +5,7 @@ import { useAnalytics } from '../hooks/useAnalytics';
 import ClickChart from '../components/ClickChart';
 import ScrollChart from '../components/ScrollChart';
 import FilterBar from '../components/FilterBar';
+import ExportButton from '../components/ExportButton';
 
 const DEFAULT_PROJECT = 'test-project-001';
 const DEFAULT_PAGE    = 'http://localhost/test';
@@ -36,11 +37,14 @@ export default function Analytics() {
           </div>
         </div>
 
-        <FilterBar
-          projectId={filters.projectId}
-          pageUrl={filters.pageUrl}
-          onFilter={(f) => setFilters(f)}
-        />
+        <div className="flex items-center gap-4">
+          <ExportButton data={analytics} filename="behavioral-analytics" />
+          <FilterBar
+            projectId={filters.projectId}
+            pageUrl={filters.pageUrl}
+            onFilter={(f) => setFilters(f)}
+          />
+        </div>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">

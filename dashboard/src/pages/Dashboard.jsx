@@ -5,6 +5,7 @@ import { useAnalytics }   from '../hooks/useAnalytics';
 import { ArrowRight } from 'lucide-react';
 
 import FilterBar   from '../components/FilterBar';
+import ExportButton from '../components/ExportButton';
 import StatsCards  from '../components/StatsCards';
 import HeatmapView from '../components/HeatmapView';
 import ClickChart  from '../components/ClickChart';
@@ -38,11 +39,14 @@ export default function Dashboard() {
           </p>
         </div>
         
-        <FilterBar
-          projectId={filters.projectId}
-          pageUrl={filters.pageUrl}
-          onFilter={(f) => setFilters(f)}
-        />
+        <div className="flex items-center gap-4">
+          <ExportButton data={analytics} filename="dashboard-analytics" />
+          <FilterBar
+            projectId={filters.projectId}
+            pageUrl={filters.pageUrl}
+            onFilter={(f) => setFilters(f)}
+          />
+        </div>
       </div>
 
       {/* Stats Cards Section */}
