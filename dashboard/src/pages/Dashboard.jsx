@@ -8,109 +8,11 @@ import HeatmapView from '../components/HeatmapView';
 import ClickChart  from '../components/ClickChart';
 import ScrollChart from '../components/ScrollChart';
 
-import {
-  colors, typography, space, radius, shadows, fontFamily,
-} from '../styles';
-
 const DEFAULT_PROJECT = 'test-project-001';
 const DEFAULT_PAGE    = 'http://localhost/test';
 
-// ── Shared panel wrapper ─────────────────────────────────────────────
-function Panel({ title, subtitle, badge, children, style: sx }) {
-  return (
-    <div
-      style={{
-        background:    '#fff',
-        borderRadius:   radius.md,
-        boxShadow:      shadows.card,
-        border:        `1px solid ${colors.border}`,
-        padding:       `${space['2xl']}px`,
-        ...sx,
-      }}
-    >
-      {(title || badge) && (
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: space.lg }}>
-          <div>
-            {title    && <h2 style={typography.sectionTitle}>{title}</h2>}
-            {subtitle && <p  style={typography.sectionSubtitle}>{subtitle}</p>}
-          </div>
-          {badge && badge}
-        </div>
-      )}
-      {children}
-    </div>
-  );
-}
-
-// ── Error banner ─────────────────────────────────────────────────────
-function ErrorBanner({ message }) {
-  return (
-    <div
-      role="alert"
-      style={{
-        background:    colors.dangerBg,
-        border:        `1px solid ${colors.danger}`,
-        borderRadius:   radius.sm,
-        padding:       `${space.md}px ${space.lg}px`,
-        color:          colors.danger,
-        fontFamily,
-        fontSize:      '0.85rem',
-        display:       'flex',
-        alignItems:    'center',
-        gap:            space.sm,
-      }}
-    >
-      <span>⚠️</span>
-      <span>{message}</span>
-    </div>
-  );
-}
-
-// ── Live badge ───────────────────────────────────────────────────────
-function LiveBadge() {
-  return (
-    <span
-      style={{
-        fontFamily,
-        fontSize:     '0.7rem',
-        fontWeight:    600,
-        color:         colors.success,
-        background:    colors.successBg,
-        borderRadius:  9999,
-        padding:      '3px 10px',
-        display:      'inline-flex',
-        alignItems:   'center',
-        gap:           5,
-      }}
-    >
-      <span
-        style={{
-          width:        7,
-          height:       7,
-          borderRadius: '50%',
-          background:   colors.success,
-          animation:   'pulse 1.5s ease-in-out infinite',
-        }}
-      />
-      Live
-    </span>
-  );
-}
-
-// Inject pulse animation once
-if (typeof document !== 'undefined' && !document.getElementById('dashboard-pulse-style')) {
-  const s = document.createElement('style');
-  s.id = 'dashboard-pulse-style';
-  s.textContent = `@keyframes pulse {
-    0%, 100% { opacity: 1; transform: scale(1); }
-    50%       { opacity: 0.4; transform: scale(0.85); }
-  }`;
-  document.head.appendChild(s);
-}
-
-// ── Dashboard page ───────────────────────────────────────────────────
 export default function Dashboard() {
-  // Filter state — updates ONLY when Load Data is clicked
+  const [view, setView] = useState('overview'); // 'overview' | 'heatmap' | 'charts'
   const [filters, setFilters] = useState({
     projectId: DEFAULT_PROJECT,
     pageUrl:   DEFAULT_PAGE,
@@ -122,99 +24,144 @@ export default function Dashboard() {
   const anyError = hmError || anError;
 
   return (
-    <div
-      style={{
-        maxWidth:   1400,
-        margin:    '0 auto',
-        padding:   `${space['2xl']}px`,
-        minHeight: '100vh',
-        background: colors.pageBg,
-        boxSizing: 'border-box',
-        fontFamily,
-      }}
-    >
-      {/* ── Header ──────────────────────────────────────────────── */}
-      <header style={{ marginBottom: space['3xl'] }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: space.md, marginBottom: space.xs }}>
-          <span style={{ fontSize: '1.6rem' }}>🔥</span>
-          <h1 style={typography.pageTitle}>Heatmap Analytics Dashboard</h1>
-          <LiveBadge />
+    <div className="relative overflow-hidden w-full max-w-[1600px] mx-auto">
+      
+      {/* ── View Container (Animated Slider) ────────────────────────── */}
+      <div className={`flex transition-transform duration-700 ease-in-out ${
+        view === 'overview' ? 'translate-x-0' : '-translate-x-full'
+      }`}>
+        
+        {/* PAGE 1: OVERVIEW PAGE */}
+        <div className="min-w-full flex flex-col gap-8 pr-1">
+          
+          {/* Header Row */}
+          <div className="flex items-end justify-between">
+            <div className="flex flex-col gap-1">
+              <h1 className="text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-luxury-text via-slate-700 to-luxury-blue pb-1">
+                Executive Insights
+              </h1>
+              <p className="text-sm text-luxury-secondary font-medium flex items-center gap-2">
+                Real-time tracking activated <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
+              </p>
+            </div>
+            
+            <FilterBar
+              projectId={filters.projectId}
+              pageUrl={filters.pageUrl}
+              onFilter={(f) => setFilters(f)}
+            />
+          </div>
+
+          {/* Stats Grid */}
+          <StatsCards analytics={analytics} loading={anLoading} />
+
+          {/* Main Content Grid */}
+          <div className="grid grid-cols-12 gap-8">
+            
+            {/* Heatmap Section */}
+            <div className="col-span-7 flex flex-col gap-4">
+              <div className="flex items-center justify-between">
+                <div className="flex flex-col">
+                  <h3 className="text-lg font-bold text-luxury-text">Interactions Heatmap</h3>
+                  <p className="text-xs text-luxury-secondary font-medium">Visual density of user engagement</p>
+                </div>
+                <button 
+                  onClick={() => setView('heatmap')}
+                  className="px-4 py-1.5 text-xs font-bold text-luxury-blue bg-luxury-blue/10 hover:bg-luxury-blue hover:text-white rounded-lg transition-all"
+                >
+                  View Detailed Map →
+                </button>
+              </div>
+              <div className="glass-card p-6 h-[500px]">
+                <HeatmapView data={data} total={total} loading={hmLoading} error={hmError} />
+              </div>
+            </div>
+
+            {/* Click Chart Section */}
+            <div className="col-span-5 flex flex-col gap-4">
+              <div className="flex items-center justify-between">
+                <div className="flex flex-col">
+                  <h3 className="text-lg font-bold text-luxury-text">Click Velocity</h3>
+                  <p className="text-xs text-luxury-secondary font-medium">Hourly distribution of interactions</p>
+                </div>
+                <button 
+                  onClick={() => setView('charts')}
+                  className="px-4 py-1.5 text-xs font-bold text-luxury-blue bg-luxury-blue/10 hover:bg-luxury-blue hover:text-white rounded-lg transition-all"
+                >
+                  Full Report →
+                </button>
+              </div>
+              <div className="glass-card p-6 h-[500px]">
+                <ClickChart analytics={analytics} loading={anLoading} />
+              </div>
+            </div>
+          </div>
+
+          {/* Scroll Analysis */}
+          <div className="flex flex-col gap-4 mb-10">
+            <h3 className="text-lg font-bold text-luxury-text">Continuous Scroll Performance</h3>
+            <div className="glass-card p-6 min-h-[300px]">
+              <ScrollChart analytics={analytics} loading={anLoading} />
+            </div>
+          </div>
         </div>
-        <p style={typography.pageSubtitle}>
-          Real-time click heatmaps and engagement metrics for your pages.
-        </p>
-      </header>
 
-      {/* ── Filter Bar ──────────────────────────────────────────── */}
-      <section style={{ marginBottom: space['2xl'] }}>
-        <FilterBar
-          projectId={filters.projectId}
-          pageUrl={filters.pageUrl}
-          onFilter={(f) => setFilters(f)}
-        />
-      </section>
+        {/* PAGE 2: DETAILED VIEW (Currently just a placeholder for Heatmap Detail) */}
+        <div className="min-w-full flex flex-col gap-8 pl-1">
+          <div className="flex items-center gap-4">
+            <button 
+              onClick={() => setView('overview')}
+              className="w-10 h-10 rounded-full border border-slate-200 flex items-center justify-center hover:bg-slate-50 transition-colors"
+            >
+              ←
+            </button>
+            <div className="flex flex-col">
+              <h1 className="text-2xl font-bold text-luxury-text capitalize">Detailed {view} Analysis</h1>
+              <p className="text-sm text-luxury-secondary">Deep dive into project interaction metrics</p>
+            </div>
+          </div>
 
-      {/* ── Error banner ────────────────────────────────────────── */}
-      {anyError && (
-        <section style={{ marginBottom: space['2xl'] }}>
-          <ErrorBanner message={anyError} />
-        </section>
-      )}
+          <div className="glass-card p-10 min-h-[700px] flex items-center justify-center relative">
+            {view === 'heatmap' ? (
+              <div className="w-full h-full flex flex-col gap-6">
+                 <HeatmapView data={data} total={total} loading={hmLoading} error={hmError} largeHeight={600} />
+                 <div className="flex justify-center gap-10 mt-4">
+                    <LegendItem color="#0000FF" label="Cold Zone" />
+                    <LegendItem color="#00FF00" label="Active Zone" />
+                    <LegendItem color="#FFFF00" label="Warm Zone" />
+                    <LegendItem color="#FF0000" label="Hotspot" />
+                 </div>
+              </div>
+            ) : (
+              <div className="text-center">
+                <p className="text-xl font-bold text-slate-300">Detailed Chart View Coming Soon</p>
+                <p className="text-sm text-slate-400 mt-2">Extended reporting and raw data exports.</p>
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
 
-      {/* ── KPI Cards ───────────────────────────────────────────── */}
-      <section style={{ marginBottom: space['2xl'] }}>
-        <StatsCards analytics={analytics} loading={anLoading} />
-      </section>
-
-      {/* ── Main row: Heatmap (60%) + ClickChart (40%) ──────────── */}
-      <section
-        style={{
-          display:             'grid',
-          gridTemplateColumns: '3fr 2fr',
-          gap:                  space['2xl'],
-          marginBottom:         space['2xl'],
-        }}
-      >
-        <Panel
-          title="Click Heatmap"
-          subtitle="User interaction density — where people click most"
-          badge={<LiveBadge />}
-        >
-          <HeatmapView data={data} total={total} loading={hmLoading} error={hmError} />
-        </Panel>
-
-        <Panel
-          title="Clicks by Hour"
-          subtitle="Hourly click distribution over the tracked page"
-        >
-          <ClickChart analytics={analytics} loading={anLoading} />
-        </Panel>
-      </section>
-
-      {/* ── Scroll Chart (full width) ────────────────────────────── */}
-      <section style={{ marginBottom: space['4xl'] }}>
-        <Panel
-          title="Scroll Depth Analysis"
-          subtitle="How far users scroll down the page on average"
-        >
-          <ScrollChart analytics={analytics} loading={anLoading} />
-        </Panel>
-      </section>
-
-      {/* ── Footer ──────────────────────────────────────────────── */}
-      <footer
-        style={{
-          borderTop:      `1px solid ${colors.border}`,
-          paddingTop:      space.lg,
-          display:        'flex',
-          justifyContent: 'space-between',
-          flexWrap:       'wrap',
-          gap:             space.sm,
-        }}
-      >
-        <span style={typography.caption}>Heatmap Analytics Platform</span>
-        <span style={typography.caption}>Auto-refreshes every 30 s · Powered by Vite + React</span>
+      {/* Footer */}
+      <footer className="mt-12 pt-8 border-t border-slate-200/60 flex items-center justify-between transition-opacity duration-300" 
+              style={{ opacity: view === 'overview' ? 1 : 0 }}>
+        <div className="text-[10px] uppercase font-bold tracking-widest text-slate-400 flex items-center gap-2">
+           <span className="w-1.5 h-1.5 rounded-full bg-slate-200" />
+           Powered by Heatwave Intelligence 3.0
+        </div>
+        <div className="text-[10px] uppercase font-bold tracking-widest text-slate-400">
+          Last Backup: {new Date().toLocaleTimeString()}
+        </div>
       </footer>
+    </div>
+  );
+}
+
+function LegendItem({ color, label }) {
+  return (
+    <div className="flex items-center gap-2">
+      <div className="w-3 h-3 rounded-full" style={{ background: color, boxShadow: `0 0 10px ${color}44` }} />
+      <span className="text-[10px] uppercase font-bold tracking-tighter text-slate-500">{label}</span>
     </div>
   );
 }

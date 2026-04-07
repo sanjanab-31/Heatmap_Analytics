@@ -1,5 +1,10 @@
 import Dashboard from './pages/Dashboard';
+import Layout from './components/Layout';
 
 export default function App() {
-  return <Dashboard />;
+  return (
+    <Layout>
+      <Dashboard />
+    </Layout>
+  );
 }

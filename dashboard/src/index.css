@@ -1,0 +1,60 @@
+@import "tailwindcss";
+
+@theme {
+  /* Luxury Color Palette */
+  --color-luxury-blue: #0066FF;
+  --color-luxury-bg: #f8fafc;
+  --color-luxury-card: #ffffff;
+  --color-luxury-text: #0f172a;
+  --color-luxury-secondary: #64748b;
+  --color-luxury-border: rgba(226, 232, 240, 0.6);
+  
+  /* Fonts */
+  --font-heading: "Outfit", sans-serif;
+  --font-body: "Inter", sans-serif;
+  
+  /* Shadows */
+  --shadow-luxury: 0 20px 25px -5px rgba(0, 0, 0, 0.03), 0 10px 10px -5px rgba(0, 0, 0, 0.02);
+  --shadow-glow: 0 0 20px rgba(0, 102, 255, 0.15);
+  
+  /* Transitions */
+  --transition-smooth: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* Base Styles */
+@layer base {
+  body {
+    @apply bg-luxury-bg text-luxury-text font-body antialiased;
+  }
+  
+  h1, h2, h3, h4, h5, h6 {
+    @apply font-heading font-semibold tracking-tight;
+  }
+}
+
+/* Custom Components Utility */
+@layer components {
+  .glass-card {
+    @apply bg-white/70 backdrop-blur-xl border border-white/50 shadow-luxury rounded-2xl transition-all duration-300;
+  }
+  
+  .glass-card:hover {
+    @apply -translate-y-1 shadow-2xl;
+  }
+  
+  .btn-primary {
+    @apply bg-luxury-blue text-white font-heading font-semibold px-6 py-3 rounded-xl transition-all hover:scale-[1.02] active:scale-[0.98] shadow-lg hover:shadow-luxury-blue/30;
+  }
+}
+
+/* Animations */
+@keyframes slideUp {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.animate-slide-up {
+  animation: slideUp 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Outfit:wght@300;400;500;600;700&display=swap');

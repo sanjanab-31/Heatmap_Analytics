@@ -1,3 +1,4 @@
+import { Bar } from 'react-chartjs-2';
 import {
   Chart as ChartJS,
   CategoryScale,
@@ -5,102 +6,76 @@ import {
   BarElement,
   Title,
   Tooltip,
+  Legend,
 } from 'chart.js';
-import { Bar } from 'react-chartjs-2';
-import { colors, typography } from '../styles';
 
-// Registration is safe to call multiple times — Chart.js deduplicates
-ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip);
+ChartJS.register(
+  CategoryScale,
+  LinearScale,
+  BarElement,
+  Title,
+  Tooltip,
+  Legend
+);
 
-/**
- * ScrollChart — horizontal bar chart showing avg vs max scroll depth.
- *
- * Props:
- *   analytics {Object|null}
- *   loading   {boolean}
- */
 export default function ScrollChart({ analytics, loading }) {
-  if (!analytics || loading) {
-    return <EmptyState label={loading ? 'Loading chart…' : 'No data yet'} />;
-  }
+  const scrollData = analytics?.scroll_depth || [0, 0, 0, 0, 0];
+  const labels = ['0-20%', '21-40%', '41-60%', '61-80%', '81-100%'];
 
-  const avg = analytics.avgScrollDepth ?? 0;
-  const max = analytics.maxScrollDepth ?? 0;
-
-  const chartData = {
-    labels:   ['Average Scroll Depth', 'Maximum Scroll Depth'],
+  const data = {
+    labels,
     datasets: [
       {
-        label:           'Scroll Depth (%)',
-        data:             [avg, max],
-        backgroundColor: [
-          'rgba(26, 86, 219, 0.75)',
-          'rgba(59, 130, 246, 0.45)',
-        ],
-        borderRadius:    4,
-        borderSkipped:  false,
+        label: 'Retention Rate (%)',
+        data: scrollData,
+        backgroundColor: 'rgba(0, 102, 255, 0.4)',
+        hoverBackgroundColor: '#0066FF',
+        borderRadius: 4,
+        barThickness: 32,
       },
     ],
   };
 
   const options = {
-    indexAxis:           'y',  // horizontal bars
-    responsive:          true,
+    indexAxis: 'y',
+    responsive: true,
     maintainAspectRatio: false,
     plugins: {
       legend: { display: false },
-      title: {
-        display: true,
-        text:    'Scroll Depth Analysis',
-        color:   colors.text,
-        font:    { size: 13, weight: '600', family: "'Inter', sans-serif" },
-        padding: { bottom: 12 },
-      },
       tooltip: {
-        callbacks: {
-          label: (ctx) => ` ${ctx.parsed.x.toFixed(1)}%`,
-        },
+        backgroundColor: '#0f172a',
+        padding: 10,
+        titleFont: { weight: 'bold' },
+        cornerRadius: 4,
       },
     },
     scales: {
       x: {
-        min:         0,
-        max:         100,
-        grid:        { color: colors.borderLight },
-        ticks: {
-          color:     colors.textMuted,
-          font:      { size: 11 },
-          callback:  (v) => `${v}%`,
-        },
+        grid: { color: 'rgba(226, 232, 240, 0.4)' },
+        ticks: { color: '#94a3b8', font: { size: 10 } },
+        min: 0,
+        max: 100,
+        title: { display: true, text: 'Completion %', color: '#cbd5e1', font: { size: 9, weight: '700' } },
       },
       y: {
-        grid:  { display: false },
-        ticks: { color: colors.textMuted, font: { size: 11 } },
+        grid: { display: false },
+        ticks: { color: '#0f172a', font: { size: 11, weight: '600' } },
       },
     },
   };
 
   return (
-    <div style={{ height: 150 }}>
-      <Bar data={chartData} options={options} />
-    </div>
-  );
-}
-
-function EmptyState({ label }) {
-  return (
-    <div
-      style={{
-        height:          150,
-        display:         'flex',
-        alignItems:      'center',
-        justifyContent:  'center',
-        background:      '#fafafa',
-        borderRadius:     6,
-        border:          `1px dashed ${colors.border}`,
-      }}
-    >
-      <span style={typography.caption}>{label}</span>
+    <div className="relative w-full h-[280px] flex items-center justify-center">
+      {loading ? (
+        <div className="flex items-center gap-2">
+           <div className="w-10 h-2 bg-slate-100 rounded-full overflow-hidden">
+              <div className="w-1/2 h-full bg-luxury-blue animate-[loading_1.5s_infinite]" />
+           </div>
+           <span className="text-[10px] font-bold text-slate-300 uppercase tracking-widest">Profiling Funnel...</span>
+        </div>
+      ) : (
+        <Bar data={data} options={options} />
+      )}
     </div>
   );
 }
