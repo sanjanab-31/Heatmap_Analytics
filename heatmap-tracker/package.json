@@ -1,0 +1,20 @@
+{
+  "name": "heatmap-tracker",
+  "version": "1.0.0",
+  "main": "dist/heatmap-tracker.js",
+  "module": "src/index.js",
+  "scripts": {
+    "build": "rollup -c",
+    "dev": "rollup -c -w",
+    "test": "echo \"No tests configured\""
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "description": "",
+  "devDependencies": {
+    "@rollup/plugin-terser": "^1.0.0",
+    "rollup": "^4.60.1",
+    "typescript": "^6.0.2"
+  }
+}
