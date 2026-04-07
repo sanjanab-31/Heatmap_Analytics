@@ -12,14 +12,11 @@ import ClickChart  from '../components/ClickChart';
 import ScrollChart from '../components/ScrollChart';
 import TopElements from '../components/TopElements';
 
-const DEFAULT_PROJECT = 'test-project-001';
-const DEFAULT_PAGE    = 'http://localhost/test';
-
 export default function Dashboard() {
   const navigate = useNavigate();
   const [filters, setFilters] = useState({
-    projectId: DEFAULT_PROJECT,
-    pageUrl:   DEFAULT_PAGE,
+    projectId: '',
+    pageUrl:   '',
   });
 
   const { data, total, loading: hmLoading, error: hmError } = useHeatmapData(filters);
@@ -54,7 +51,7 @@ export default function Dashboard() {
 
       {/* Top Clicked Elements Section */}
       <section className="flex flex-col gap-5">
-        <TopElements loading={anLoading} />
+        <TopElements loading={anLoading} data={analytics?.top_elements || []} />
       </section>
 
       {/* Main Grid: Heatmap & Click Velocity */}

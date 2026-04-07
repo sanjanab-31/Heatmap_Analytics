@@ -1,7 +1,40 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { ShieldCheck, Key, Trophy } from 'lucide-react';
+import { fetchProjects } from '../api/client';
 
 export default function Settings() {
+   const [projects, setProjects] = useState([]);
+   const [loading, setLoading] = useState(true);
+
+   useEffect(() => {
+      let mounted = true;
+      const load = async () => {
+         try {
+            const data = await fetchProjects();
+            if (mounted) setProjects(Array.isArray(data) ? data : []);
+         } finally {
+            if (mounted) setLoading(false);
+         }
+      };
+
+      load();
+      return () => {
+         mounted = false;
+      };
+   }, []);
+
+   const activeProjects = projects.filter((p) => p.status === 'active').length;
+   const retentionDays = Number(import.meta.env.VITE_DATA_RETENTION_DAYS || 0);
+   const primaryProject = projects[0];
+   const apiKeyPreview = primaryProject?.apiKeyLastFour
+      ? `************************${primaryProject.apiKeyLastFour}`
+      : 'No API key available';
+   const latestProjectTime = projects
+      .map((project) => new Date(project.createdAt || 0).getTime())
+      .filter((value) => Number.isFinite(value) && value > 0)
+      .sort((a, b) => b - a)[0];
+   const auditDate = latestProjectTime ? new Date(latestProjectTime) : new Date();
+
   return (
     <div className="flex flex-col gap-10 animate-fade-in py-10">
       <div className="flex flex-col gap-2">
@@ -15,9 +48,9 @@ export default function Settings() {
         <div className="lg:col-span-2 flex flex-col gap-6">
           <Section title="Project Management" subtitle="Manage which domains and projects are actively tracked.">
              <div className="flex flex-col gap-4">
-                <SettingItem label="Tracking Active" description="Enable or disable real-time data ingestion for all projects." active />
-                <SettingItem label="Anonymize IP" description="Comply with GDPR by masking the last octet of visitor IP addresses." active />
-                <SettingItem label="Data Retention" description="How long to store interaction data (currently 90 days)." />
+                <SettingItem label="Tracking Active" description={`Active projects: ${activeProjects} / ${projects.length}`} active={activeProjects > 0} />
+                <SettingItem label="Anonymize IP" description="Comply with GDPR by masking the last octet of visitor IP addresses." active={Boolean(import.meta.env.VITE_ANONYMIZE_IP)} />
+                <SettingItem label="Data Retention" description={retentionDays > 0 ? `How long to store interaction data (${retentionDays} days).` : 'Set VITE_DATA_RETENTION_DAYS to configure retention policy.'} active={retentionDays > 0} />
              </div>
           </Section>
 
@@ -29,9 +62,14 @@ export default function Settings() {
                          <Key size={12} className="text-luxury-blue" />
                          <span className="text-xs font-black text-secondary uppercase tracking-widest">Public API Key</span>
                       </div>
-                      <code className="text-sm font-mono text-luxury-blue">************************8fb4</code>
+                      <code className="text-sm font-mono text-luxury-blue">{apiKeyPreview}</code>
                    </div>
-                   <button className="text-xs font-bold text-luxury-blue bg-white border border-slate-200 px-4 py-2 rounded-xl shadow-sm hover:shadow transition-all">Copy Key</button>
+                   <button
+                     onClick={() => navigator.clipboard.writeText(primaryProject?.projectId || '')}
+                     className="text-xs font-bold text-luxury-blue bg-white border border-slate-200 px-4 py-2 rounded-xl shadow-sm hover:shadow transition-all"
+                   >
+                     Copy Project ID
+                   </button>
                 </div>
              </div>
           </Section>
@@ -45,7 +83,7 @@ export default function Settings() {
               </div>
               <div className="flex flex-col gap-2">
                  <h4 className="text-xl font-bold font-heading tracking-tight">Premium Support</h4>
-                 <p className="text-sm text-white/80 leading-relaxed font-medium">As an Enterprise Elite customer, you have access to 24/7 dedicated account management.</p>
+                 <p className="text-sm text-white/80 leading-relaxed font-medium">{projects.length > 0 ? `${projects.length} connected project${projects.length > 1 ? 's' : ''} with active telemetry.` : 'Connect a project to enable support insights and usage recommendations.'}</p>
               </div>
               <button className="w-full bg-white text-luxury-blue py-3 rounded-xl font-bold font-heading text-sm shadow-xl shadow-blue-900/20 active:scale-95 transition-transform z-10">Contact Manager</button>
            </div>
@@ -57,9 +95,9 @@ export default function Settings() {
               </div>
               <div className="flex items-center gap-3">
                  <div className="w-2 h-2 rounded-full bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.5)]" />
-                 <span className="text-sm font-bold text-luxury-text">System scans completed</span>
+                 <span className="text-sm font-bold text-luxury-text">{loading ? 'Loading project security context...' : 'System scans completed'}</span>
               </div>
-              <p className="text-xs text-secondary font-medium">Last automated audit: Today at 04:20 AM</p>
+              <p className="text-xs text-secondary font-medium">Last automated audit: {auditDate.toLocaleString()}</p>
            </div>
         </div>
       </div>

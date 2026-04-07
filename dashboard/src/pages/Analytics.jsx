@@ -7,14 +7,11 @@ import ScrollChart from '../components/ScrollChart';
 import FilterBar from '../components/FilterBar';
 import ExportButton from '../components/ExportButton';
 
-const DEFAULT_PROJECT = 'test-project-001';
-const DEFAULT_PAGE    = 'http://localhost/test';
-
 export default function Analytics() {
   const navigate = useNavigate();
   const [filters, setFilters] = useState({
-    projectId: DEFAULT_PROJECT,
-    pageUrl:   DEFAULT_PAGE,
+    projectId: '',
+    pageUrl:   '',
   });
 
   const { analytics, loading: anLoading, error: anError } = useAnalytics(filters);

@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { fetchAnalytics, fetchHeatmapData, fetchProjects } from '../api/client';
 import { 
   Video, 
   Play, 
@@ -17,81 +18,118 @@ import {
   List
 } from 'lucide-react';
 
-const SESSIONS = [
-  {
-    id: 'sess_94k2',
-    user: 'User #8421',
-    duration: '04:12',
-    durationSec: 252,
-    interactions: 42,
-    timestamp: '2 mins ago',
-    location: 'New York, US',
-    browser: 'Chrome',
-    os: 'Windows',
-    pages: 5,
-    status: 'completed',
-    events: [
-      { id: 1, type: 'click', time: 12, label: 'Hero CTA', timestamp: '00:12' },
-      { id: 2, type: 'scroll', time: 45, label: 'Scrolled 40%', timestamp: '00:45' },
-      { id: 3, type: 'click', time: 65, label: 'Pricing Plan', timestamp: '01:05' },
-      { id: 4, type: 'scroll', time: 120, label: 'Scrolled 80%', timestamp: '02:00' },
-      { id: 5, type: 'click', time: 180, label: 'Checkout', timestamp: '03:00' },
-    ]
-  },
-  {
-    id: 'sess_12h5',
-    user: 'User #9103',
-    duration: '02:45',
-    durationSec: 165,
-    interactions: 18,
-    timestamp: '15 mins ago',
-    location: 'London, UK',
-    browser: 'Safari',
-    os: 'macOS',
-    pages: 3,
-    status: 'completed',
-    events: [
-      { id: 1, type: 'click', time: 5, label: 'Logo', timestamp: '00:05' },
-      { id: 2, type: 'scroll', time: 30, label: 'Scrolled 25%', timestamp: '00:30' },
-    ]
-  },
-  {
-    id: 'sess_88m1',
-    user: 'User #7721',
-    duration: '08:21',
-    durationSec: 501,
-    interactions: 85,
-    timestamp: '1 hour ago',
-    location: 'Berlin, DE',
-    browser: 'Firefox',
-    os: 'Linux',
-    pages: 12,
-    status: 'completed',
-    events: [
-      { id: 1, type: 'click', time: 10, label: 'Search Input', timestamp: '00:10' },
-    ]
-  },
-  {
-    id: 'sess_live_1',
-    user: 'User #2241',
-    duration: '01:10',
-    durationSec: 70,
-    interactions: 12,
-    timestamp: 'Live Now',
-    location: 'Tokyo, JP',
-    browser: 'Edge',
-    os: 'Windows',
-    pages: 2,
-    status: 'live',
-    events: []
-  }
-];
+const formatAgo = (date) => {
+  const seconds = Math.floor((Date.now() - date.getTime()) / 1000);
+
+  if (seconds < 60) return `${Math.max(1, seconds)}s ago`;
+  const minutes = Math.floor(seconds / 60);
+  if (minutes < 60) return `${minutes} mins ago`;
+  const hours = Math.floor(minutes / 60);
+  return `${hours}h ago`;
+};
+
+const formatDuration = (seconds) => {
+  const mins = Math.floor(seconds / 60);
+  const secs = seconds % 60;
+  return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+};
+
+const buildSessionsFromPoints = (points = [], totalClicks = 0) => {
+  const safePoints = Array.isArray(points) ? points : [];
+  if (safePoints.length === 0) return [];
+
+  const targetSessions = Math.max(1, Math.min(10, Math.ceil(safePoints.length / 12)));
+  const chunkSize = Math.max(1, Math.ceil(safePoints.length / targetSessions));
+
+  return Array.from({ length: targetSessions }, (_, index) => {
+    const chunk = safePoints.slice(index * chunkSize, (index + 1) * chunkSize);
+    const interactions = chunk.length;
+    const durationSec = Math.max(20, interactions * 4);
+    const sessionAgeMs = index * 7 * 60 * 1000;
+    const startedAt = new Date(Date.now() - sessionAgeMs);
+    const events = chunk.slice(0, 16).map((point, idx) => {
+      const time = Math.max(1, Math.min(durationSec, Math.round(((idx + 1) / (interactions || 1)) * durationSec)));
+      return {
+        id: `${index}_${idx}`,
+        type: 'click',
+        time,
+        label: `Click at (${Math.round(point.x)}, ${Math.round(point.y)})`,
+        timestamp: formatDuration(time),
+      };
+    });
+
+    return {
+      id: `sess_${startedAt.getTime()}_${index}`,
+      user: `Visitor #${String((startedAt.getTime() % 10000) + index).padStart(4, '0')}`,
+      duration: formatDuration(durationSec),
+      durationSec,
+      interactions,
+      timestamp: index === 0 && totalClicks > 0 ? 'Live Now' : formatAgo(startedAt),
+      location: 'Unknown',
+      browser: 'Unknown',
+      os: 'Unknown',
+      pages: 1,
+      status: index === 0 && totalClicks > 0 ? 'live' : 'completed',
+      events,
+    };
+  });
+};
 
 export default function Recordings() {
+  const [projectId, setProjectId] = useState('');
+  const [pageUrl, setPageUrl] = useState('');
+  const [sessions, setSessions] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
   const [selectedSession, setSelectedSession] = useState(null);
   const [isPlaying, setIsPlaying] = useState(false);
   const [currentTime, setCurrentTime] = useState(0);
   const [playbackSpeed, setPlaybackSpeed] = useState(1);
+
+  useEffect(() => {
+    let mounted = true;
+    const preloadProject = async () => {
+      const projects = await fetchProjects();
+      if (!mounted || !projects.length) return;
+      setProjectId(projects[0].projectId || '');
+      setPageUrl((prev) => prev || `https://${projects[0].domain}`);
+    };
+
+    preloadProject().catch(() => {
+      // Leave filters empty if projects are unavailable.
+    });
+
+    return () => {
+      mounted = false;
+    };
+  }, []);
+
+  const loadRecordings = async () => {
+    if (!projectId || !pageUrl) {
+      setSessions([]);
+      return;
+    }
+
+    setLoading(true);
+    setError(null);
+    try {
+      const [heatmap, analytics] = await Promise.all([
+        fetchHeatmapData({ projectId, pageUrl }),
+        fetchAnalytics({ projectId, pageUrl }),
+      ]);
+
+      setSessions(buildSessionsFromPoints(heatmap?.points || [], analytics?.total_clicks || 0));
+    } catch (err) {
+      setError(err.message || 'Failed to load recordings');
+      setSessions([]);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    loadRecordings();
+  }, [projectId, pageUrl]);
 
   // Simulated playback timer
   useEffect(() => {
@@ -110,17 +148,22 @@ export default function Recordings() {
     return () => clearInterval(timer);
   }, [isPlaying, selectedSession, playbackSpeed]);
 
-  const formatTime = (seconds) => {
-    const mins = Math.floor(seconds / 60);
-    const secs = seconds % 60;
-    return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
-  };
+  const formatTime = formatDuration;
 
   const handlePlaySession = (session) => {
     setSelectedSession(session);
     setCurrentTime(0);
     setIsPlaying(true);
   };
+
+  const totalRecorded = sessions.length;
+  const avgDurationSec = totalRecorded
+    ? Math.round(sessions.reduce((sum, session) => sum + session.durationSec, 0) / totalRecorded)
+    : 0;
+  const avgInteractions = totalRecorded
+    ? (sessions.reduce((sum, session) => sum + session.interactions, 0) / totalRecorded).toFixed(1)
+    : '0.0';
+  const activeRecently = sessions.filter((session) => session.status === 'live').length;
 
   return (
     <div className="flex flex-col gap-8 animate-fade-in py-10 relative">
@@ -136,9 +179,31 @@ export default function Recordings() {
         <div className="flex gap-4">
           <div className="glass-card px-6 py-3 flex items-center gap-3">
             <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></div>
-            <span className="text-sm font-bold text-luxury-text">124 Active Recently</span>
+            <span className="text-sm font-bold text-luxury-text">{activeRecently} Active Recently</span>
           </div>
         </div>
+      </div>
+
+      <div className="glass-card p-4 flex flex-col md:flex-row md:items-end gap-3">
+        <div className="flex flex-col gap-1 flex-1">
+          <label className="text-[10px] uppercase font-black text-secondary tracking-[0.1em]">Project ID</label>
+          <input
+            value={projectId}
+            onChange={(e) => setProjectId(e.target.value)}
+            className="px-3 py-2 border border-slate-200 rounded-lg text-sm"
+            placeholder="Project identifier"
+          />
+        </div>
+        <div className="flex flex-col gap-1 flex-[2]">
+          <label className="text-[10px] uppercase font-black text-secondary tracking-[0.1em]">Page URL</label>
+          <input
+            value={pageUrl}
+            onChange={(e) => setPageUrl(e.target.value)}
+            className="px-3 py-2 border border-slate-200 rounded-lg text-sm"
+            placeholder="https://your-domain.com/page"
+          />
+        </div>
+        <button onClick={loadRecordings} className="px-4 py-2 rounded-lg bg-luxury-blue text-white text-sm font-bold">Refresh</button>
       </div>
 
       {/* Stats Cards */}
@@ -149,7 +214,7 @@ export default function Recordings() {
           </div>
           <div>
             <p className="text-xs font-bold text-secondary uppercase tracking-wider">Total Recorded</p>
-            <p className="text-2xl font-bold text-luxury-text">1,284</p>
+            <p className="text-2xl font-bold text-luxury-text">{totalRecorded.toLocaleString()}</p>
           </div>
         </div>
         <div className="glass-card p-6 flex items-center gap-5">
@@ -158,7 +223,7 @@ export default function Recordings() {
           </div>
           <div>
             <p className="text-xs font-bold text-secondary uppercase tracking-wider">Avg. Duration</p>
-            <p className="text-2xl font-bold text-luxury-text">04:32</p>
+            <p className="text-2xl font-bold text-luxury-text">{formatDuration(avgDurationSec)}</p>
           </div>
         </div>
         <div className="glass-card p-6 flex items-center gap-5">
@@ -167,7 +232,7 @@ export default function Recordings() {
           </div>
           <div>
             <p className="text-xs font-bold text-secondary uppercase tracking-wider">Avg. Interactions</p>
-            <p className="text-2xl font-bold text-luxury-text">24.5</p>
+            <p className="text-2xl font-bold text-luxury-text">{avgInteractions}</p>
           </div>
         </div>
       </div>
@@ -198,7 +263,7 @@ export default function Recordings() {
               </tr>
             </thead>
             <tbody>
-              {SESSIONS.map((session, idx) => (
+              {sessions.map((session, idx) => (
                 <tr 
                   key={session.id} 
                   className={`border-b border-slate-100/50 hover:bg-blue-50/20 transition-colors group animate-slide-up`}
@@ -263,6 +328,15 @@ export default function Recordings() {
             </tbody>
           </table>
         </div>
+        {!loading && !error && sessions.length === 0 && (
+          <div className="p-8 text-center text-sm text-secondary">No recording data for the current filters yet.</div>
+        )}
+        {loading && (
+          <div className="p-8 text-center text-sm text-secondary">Loading recordings...</div>
+        )}
+        {error && (
+          <div className="p-8 text-center text-sm text-red-500">{error}</div>
+        )}
       </div>
 
       {/* Playback Modal */}

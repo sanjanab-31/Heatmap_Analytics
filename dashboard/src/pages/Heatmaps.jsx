@@ -5,14 +5,11 @@ import { useHeatmapData } from '../hooks/useHeatmapData';
 import HeatmapView from '../components/HeatmapView';
 import FilterBar from '../components/FilterBar';
 
-const DEFAULT_PROJECT = 'test-project-001';
-const DEFAULT_PAGE    = 'https://example.com/home';
-
 export default function Heatmaps() {
   const navigate = useNavigate();
   const [filters, setFilters] = useState({
-    projectId: DEFAULT_PROJECT,
-    pageUrl:   DEFAULT_PAGE,
+    projectId: '',
+    pageUrl:   '',
   });
 
   const { data, total, loading: hmLoading, error: hmError } = useHeatmapData(filters);

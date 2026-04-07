@@ -4,6 +4,37 @@
 // so networking logic is never duplicated.
 
 const BASE_URL = import.meta.env.VITE_API_URL || '';
+const PROJECTS_STORAGE_KEY = 'heatwave_projects_v1';
+
+const toNumber = (value, fallback = 0) => {
+  const parsed = Number(value);
+  return Number.isFinite(parsed) ? parsed : fallback;
+};
+
+const getStoredProjects = () => {
+  try {
+    const raw = localStorage.getItem(PROJECTS_STORAGE_KEY);
+    const parsed = raw ? JSON.parse(raw) : [];
+    return Array.isArray(parsed) ? parsed : [];
+  } catch {
+    return [];
+  }
+};
+
+const saveProjects = (projects) => {
+  localStorage.setItem(PROJECTS_STORAGE_KEY, JSON.stringify(projects));
+};
+
+const pageLabelFromUrl = (pageUrl) => {
+  if (!pageUrl) return 'Unknown Page';
+
+  try {
+    const parsed = new URL(pageUrl);
+    return parsed.pathname === '/' ? `${parsed.hostname}/` : `${parsed.hostname}${parsed.pathname}`;
+  } catch {
+    return pageUrl;
+  }
+};
 
 // ── Core request helper ──────────────────────────────────────────────
 
@@ -93,64 +124,107 @@ export async function fetchHeatmapData(params = {}, signal) {
  * @returns {Promise<any>}
  */
 export async function fetchAnalytics(params = {}, signal) {
-  return request('/api/analytics', params, signal ? { signal } : {});
+  const raw = await request('/api/analytics', params, signal ? { signal } : {});
+
+  const totalClicks = toNumber(raw?.totalClicks);
+  const totalScrollEvents = toNumber(raw?.totalScrollEvents);
+  const avgScrollDepth = toNumber(raw?.avgScrollDepth);
+  const maxScrollDepth = toNumber(raw?.maxScrollDepth);
+
+  const clicksByHour = Array.from({ length: 24 }, (_, hour) => {
+    const bucket = Array.isArray(raw?.clicksPerHour)
+      ? raw.clicksPerHour.find((item) => toNumber(item?.hour, -1) === hour)
+      : null;
+    return toNumber(bucket?.count);
+  });
+
+  const topElements = (Array.isArray(raw?.topPages) ? raw.topPages : []).map((page, index) => {
+    const clicks = toNumber(page?.clicks);
+    return {
+      id: `${index}_${page?.pageUrl || 'page'}`,
+      name: page?.pageUrl || 'unknown',
+      label: pageLabelFromUrl(page?.pageUrl),
+      clicks,
+      percentage: totalClicks > 0 ? Math.round((clicks / totalClicks) * 100) : 0,
+    };
+  });
+
+  return {
+    total_clicks: totalClicks,
+    total_sessions: totalScrollEvents,
+    click_rate: totalScrollEvents > 0 ? (totalClicks / totalScrollEvents) * 100 : 0,
+    avg_scroll: avgScrollDepth,
+    max_scroll: maxScrollDepth,
+    clicks_by_hour: clicksByHour,
+    top_elements: topElements,
+  };
 }
 
-// --- MOCK API FOR PROJECTS (Frontend Demonstration) ---
-let mockProjects = [
-  {
-    _id: "mock_1",
-    name: "Example SaaS App",
-    projectId: "proj_9f8e7d6c",
-    domain: "example.com",
-    apiKeyLastFour: "8x92",
-    status: "active",
-    totalClicks: 42850,
-    totalSessions: 1250,
-    lastEventAt: new Date(Date.now() - 1000 * 60 * 5).toISOString(),
-    createdAt: new Date(Date.now() - 1000 * 60 * 60 * 24 * 15).toISOString()
-  }
-];
-
 export async function fetchProjects(signal) {
-  return new Promise(resolve => setTimeout(() => resolve([...mockProjects]), 600));
+  return new Promise((resolve, reject) => {
+    const timeoutId = setTimeout(() => {
+      if (signal?.aborted) {
+        reject(new DOMException('Request aborted', 'AbortError'));
+        return;
+      }
+
+      resolve(getStoredProjects());
+    }, 250);
+
+    signal?.addEventListener('abort', () => {
+      clearTimeout(timeoutId);
+      reject(new DOMException('Request aborted', 'AbortError'));
+    }, { once: true });
+  });
 }
 
 export async function createProject({ name, domain }) {
   return new Promise((resolve, reject) => setTimeout(() => {
-    if (mockProjects.some(p => p.domain === domain)) {
-      return reject(new Error("A project with this domain already exists."));
+    const existingProjects = getStoredProjects();
+
+    if (existingProjects.some((p) => p.domain === domain)) {
+      return reject(new Error('A project with this domain already exists.'));
     }
-    const rawApiKey = `pk_test_${Math.random().toString(36).substring(2, 15)}`;
+
+    const rawApiKey = `pk_live_${crypto.randomUUID().replace(/-/g, '').slice(0, 24)}`;
     const newProject = {
-      _id: `mock_${Date.now()}`,
+      _id: crypto.randomUUID(),
       name,
       domain,
-      projectId: `proj_${Math.random().toString(36).substring(2, 10)}`,
+      projectId: `proj_${crypto.randomUUID().replace(/-/g, '').slice(0, 12)}`,
       apiKeyLastFour: rawApiKey.slice(-4),
-      status: "active",
+      status: 'active',
       totalClicks: 0,
       totalSessions: 0,
       lastEventAt: null,
-      createdAt: new Date().toISOString()
+      createdAt: new Date().toISOString(),
     };
-    mockProjects = [newProject, ...mockProjects];
+
+    saveProjects([newProject, ...existingProjects]);
     resolve({ ...newProject, rawApiKey });
-  }, 800));
+  }, 400));
 }
 
 export async function updateProjectStatus(id, status) {
   return new Promise((resolve, reject) => setTimeout(() => {
-    const projectIndex = mockProjects.findIndex(p => p._id === id);
-    if (projectIndex === -1) return reject(new Error("Project not found"));
-    mockProjects[projectIndex] = { ...mockProjects[projectIndex], status };
-    resolve(mockProjects[projectIndex]);
-  }, 400));
+    const projects = getStoredProjects();
+    const projectIndex = projects.findIndex((p) => p._id === id);
+
+    if (projectIndex === -1) {
+      return reject(new Error('Project not found'));
+    }
+
+    projects[projectIndex] = { ...projects[projectIndex], status };
+    saveProjects(projects);
+    resolve(projects[projectIndex]);
+  }, 250));
 }
 
 export async function deleteProject(id) {
-  return new Promise(resolve => setTimeout(() => {
-    mockProjects = mockProjects.filter(p => p._id !== id);
-    resolve({ message: "Project deleted" });
-  }, 400));
+  return new Promise((resolve) => setTimeout(() => {
+    const projects = getStoredProjects();
+    const filtered = projects.filter((p) => p._id !== id);
+    saveProjects(filtered);
+    resolve({ message: 'Project deleted' });
+  }, 250));
 }

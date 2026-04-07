@@ -2,8 +2,8 @@ import { useState } from 'react';
 import { RefreshCw, Fingerprint, Globe } from 'lucide-react';
 
 export default function FilterBar({ projectId, pageUrl, onFilter }) {
-  const [pId, setPId] = useState(projectId);
-  const [url, setUrl] = useState(pageUrl);
+  const [pId, setPId] = useState(projectId || '');
+  const [url, setUrl] = useState(pageUrl || '');
 
   const handleSubmit = (e) => {
     e.preventDefault();
@@ -34,16 +34,13 @@ export default function FilterBar({ projectId, pageUrl, onFilter }) {
           <Globe size={10} />
           Target Page
         </label>
-        <select
+        <input
+          type="url"
           value={url}
           onChange={(e) => setUrl(e.target.value)}
-          className="text-sm font-bold text-luxury-text bg-transparent border-none focus:ring-0 w-64 p-0 focus:outline-none cursor-pointer appearance-none arrow-hide"
-        >
-          <option value="https://example.com/home">/home (Main Landing)</option>
-          <option value="https://example.com/pricing">/pricing (Plans)</option>
-          <option value="https://example.com/contact">/contact (Support)</option>
-          <option value="https://example.com/dashboard">/dashboard (App)</option>
-        </select>
+          className="text-sm font-bold text-luxury-text bg-transparent border-none focus:ring-0 w-64 p-0 placeholder:text-slate-300"
+          placeholder="https://your-domain.com/page"
+        />
       </div>
 
       <button

@@ -7,6 +7,13 @@ import {
 } from 'lucide-react';
 
 export default function StatsCards({ analytics, loading }) {
+  const clickRate = Number(analytics?.click_rate || 0);
+  const trendText = clickRate > 0 ? `${clickRate.toFixed(1)}% CTR` : 'No trend yet';
+  const updatedAtLabel = analytics
+    ? new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+    : 'Waiting for data';
+  const avatarCount = Math.min(3, Math.max(1, Math.ceil(Number(analytics?.total_sessions || 0) / 100)));
+
   const stats = [
     { label: 'Total Visits', value: analytics?.total_sessions || 0, icon: <Users size={20} />, color: 'text-blue-600', bg: 'bg-blue-50', border: 'border-blue-100' },
     { label: 'Total Clicks', value: analytics?.total_clicks || 0, icon: <MousePointer2 size={20} />, color: 'text-luxury-blue', bg: 'bg-luxury-blue/10', border: 'border-blue-100' },
@@ -32,7 +39,7 @@ export default function StatsCards({ analytics, loading }) {
                <div className="w-5 h-5 border-2 border-slate-100 border-t-luxury-blue rounded-full animate-spin" />
              ) : (
                 <div className="flex flex-col items-end">
-                   <span className="text-[10px] font-bold text-green-500 bg-green-50 px-2 py-0.5 rounded-full">+12%</span>
+                 <span className="text-[10px] font-bold text-green-500 bg-green-50 px-2 py-0.5 rounded-full">{trendText}</span>
                 </div>
              )}
           </div>
@@ -46,11 +53,11 @@ export default function StatsCards({ analytics, loading }) {
 
           <div className="flex items-center gap-2 relative z-10">
              <div className="flex -space-x-2">
-                {[1,2,3].map(i => (
+               {Array.from({ length: avatarCount }, (_, i) => i + 1).map(i => (
                    <div key={i} className="w-5 h-5 rounded-full border-2 border-white bg-slate-200" />
                 ))}
              </div>
-             <span className="text-[10px] font-bold text-secondary">Updated moments ago</span>
+             <span className="text-[10px] font-bold text-secondary">Updated {updatedAtLabel}</span>
           </div>
         </div>
       ))}
