@@ -1,92 +1,103 @@
-import { EventSender } from "./sender";
+let activeQueue = null;
+let clickHandler = null;
+let scrollHandler = null;
+let scrollThrottleTimer = null;
+let isTracking = false;
 
-export class HeatmapTracker {
-  constructor(options = {}) {
-    this.sender = new EventSender(options.sender || {});
-    this.sampleRate = Number(options.sampleRate || 0.15);
-    this.scrollDebounceMs = Number(options.scrollDebounceMs || 250);
+function getDocumentHeight() {
+  const documentElement = document.documentElement;
+  const body = document.body;
 
-    this.onClick = this.onClick.bind(this);
-    this.onMouseMove = this.onMouseMove.bind(this);
-    this.onScroll = this.onScroll.bind(this);
-    this.onUnload = this.onUnload.bind(this);
+  return Math.max(
+    documentElement ? documentElement.scrollHeight : 0,
+    documentElement ? documentElement.offsetHeight : 0,
+    body ? body.scrollHeight : 0,
+    body ? body.offsetHeight : 0
+  );
+}
 
-    this.scrollTimeout = null;
-    this.running = false;
+function enqueue(event) {
+  if (activeQueue) {
+    activeQueue.push(event);
+  }
+}
+
+function createClickEvent(event) {
+  const x = event.clientX;
+  const y = event.clientY;
+
+  return {
+    x,
+    y,
+    xPercent: window.innerWidth > 0 ? (x / window.innerWidth) * 100 : 0,
+    yPercent: window.innerHeight > 0 ? (y / window.innerHeight) * 100 : 0,
+    pageUrl: window.location.href,
+    eventType: "click",
+    timestamp: new Date().toISOString(),
+  };
+}
+
+function createScrollEvent() {
+  const documentHeight = getDocumentHeight();
+  const viewportHeight = window.innerHeight || 0;
+  const scrollableDistance = Math.max(documentHeight - viewportHeight, 0);
+  const scrollDepth = scrollableDistance > 0 ? (window.scrollY / scrollableDistance) * 100 : 0;
+
+  return {
+    scrollDepth,
+    pageUrl: window.location.href,
+    eventType: "scroll",
+    timestamp: new Date().toISOString(),
+  };
+}
+
+function onClick(event) {
+  enqueue(createClickEvent(event));
+}
+
+function emitScrollEvent() {
+  scrollThrottleTimer = null;
+  enqueue(createScrollEvent());
+}
+
+function onScroll() {
+  if (scrollThrottleTimer !== null) {
+    return;
   }
 
-  start() {
-    if (this.running) {
-      return;
-    }
+  scrollThrottleTimer = window.setTimeout(emitScrollEvent, 500);
+}
 
-    this.running = true;
-    this.sender.start();
-
-    document.addEventListener("click", this.onClick, { passive: true });
-    document.addEventListener("mousemove", this.onMouseMove, { passive: true });
-    window.addEventListener("scroll", this.onScroll, { passive: true });
-    window.addEventListener("beforeunload", this.onUnload);
+export function startTracking(queue) {
+  if (isTracking) {
+    return;
   }
 
-  stop() {
-    if (!this.running) {
-      return;
-    }
+  activeQueue = queue;
+  clickHandler = onClick;
+  scrollHandler = onScroll;
+  isTracking = true;
 
-    this.running = false;
+  document.addEventListener("click", clickHandler, { passive: true });
+  window.addEventListener("scroll", scrollHandler, { passive: true });
+}
 
-    document.removeEventListener("click", this.onClick);
-    document.removeEventListener("mousemove", this.onMouseMove);
-    window.removeEventListener("scroll", this.onScroll);
-    window.removeEventListener("beforeunload", this.onUnload);
-
-    if (this.scrollTimeout) {
-      clearTimeout(this.scrollTimeout);
-      this.scrollTimeout = null;
-    }
-
-    this.sender.stop();
+export function stopTracking() {
+  if (!isTracking) {
+    activeQueue = null;
+    return;
   }
 
-  onClick(event) {
-    this.sender.enqueue(this.baseEvent("click", event.clientX, event.clientY));
+  document.removeEventListener("click", clickHandler);
+  window.removeEventListener("scroll", scrollHandler);
+
+  if (scrollThrottleTimer !== null) {
+    clearTimeout(scrollThrottleTimer);
+    scrollThrottleTimer = null;
   }
 
-  onMouseMove(event) {
-    // Sample high-frequency moves to reduce network noise.
-    if (Math.random() > this.sampleRate) {
-      return;
-    }
-
-    this.sender.enqueue(this.baseEvent("mousemove", event.clientX, event.clientY));
-  }
-
-  onScroll() {
-    if (this.scrollTimeout) {
-      clearTimeout(this.scrollTimeout);
-    }
-
-    this.scrollTimeout = setTimeout(() => {
-      const viewportX = Math.round(window.innerWidth / 2);
-      const viewportY = Math.round(window.innerHeight / 2);
-      this.sender.enqueue(this.baseEvent("scroll", viewportX, viewportY));
-    }, this.scrollDebounceMs);
-  }
-
-  onUnload() {
-    this.sender.stop();
-  }
-
-  baseEvent(type, x, y) {
-    return {
-      type,
-      x,
-      y,
-      pageX: Math.round(x + window.scrollX),
-      pageY: Math.round(y + window.scrollY),
-      path: window.location.pathname,
-      ts: Date.now(),
-    };
-  }
+  activeQueue = null;
+  clickHandler = null;
+  scrollHandler = null;
+  isTracking = false;
 }
