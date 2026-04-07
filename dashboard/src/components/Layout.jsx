@@ -15,6 +15,8 @@ import {
 } from 'lucide-react';
 
 export default function Layout() {
+  const [showNotifications, setShowNotifications] = useState(false);
+
   return (
     <div className="flex h-screen bg-luxury-bg font-body antialiased overflow-hidden">
       
@@ -78,11 +80,67 @@ export default function Layout() {
             </div>
           </div>
           
-          <div className="flex items-center gap-6">
-            <div className="w-10 h-10 rounded-xl bg-slate-50 border border-slate-200 flex items-center justify-center cursor-pointer hover:bg-slate-100 transition-colors relative group">
-               <Bell size={20} className="text-secondary group-hover:text-luxury-blue transition-colors" />
+          <div className="flex items-center gap-6 relative">
+            {/* Notification Trigger */}
+            <div 
+              className="w-10 h-10 rounded-xl bg-slate-50 border border-slate-200 flex items-center justify-center cursor-pointer hover:bg-slate-100 transition-colors relative group"
+              onClick={() => setShowNotifications(!showNotifications)}
+            >
+               <Bell size={20} className={`transition-colors ${showNotifications ? 'text-luxury-blue' : 'text-secondary group-hover:text-luxury-blue'}`} />
                <span className="absolute top-2.5 right-2.5 w-2 h-2 bg-red-500 rounded-full border-2 border-white" />
             </div>
+            
+            {/* Notifications Dropdown Panel */}
+            {showNotifications && (
+              <div className="absolute top-14 right-48 w-80 bg-white border border-border-soft rounded-2xl shadow-premium overflow-hidden z-50 animate-fade-in origin-top-right">
+                <div className="p-4 border-b border-border-soft flex items-center justify-between bg-slate-50/50">
+                  <h3 className="text-sm font-bold text-luxury-text">Notifications</h3>
+                  <span className="text-[10px] font-bold text-luxury-blue bg-luxury-blue/10 px-2 py-0.5 rounded-full">3 New</span>
+                </div>
+                <div className="flex flex-col max-h-[320px] overflow-y-auto custom-scrollbar">
+                  
+                  {/* Notification 1 */}
+                  <div className="p-4 border-b border-border-soft/50 hover:bg-slate-50 transition-colors cursor-pointer flex gap-3">
+                    <div className="w-8 h-8 rounded-full bg-emerald-100 flex items-center justify-center shrink-0">
+                      <Zap size={14} className="text-emerald-600" />
+                    </div>
+                    <div className="flex flex-col">
+                      <p className="text-sm font-medium text-luxury-text leading-tight">New tracking data received</p>
+                      <p className="text-xs text-secondary mt-1">Homepage heatmap updated with 1.2k new sessions.</p>
+                      <p className="text-[10px] text-slate-400 font-medium mt-2">Just now</p>
+                    </div>
+                  </div>
+                  
+                  {/* Notification 2 */}
+                  <div className="p-4 border-b border-border-soft/50 hover:bg-slate-50 transition-colors cursor-pointer flex gap-3">
+                    <div className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center shrink-0">
+                      <FolderOpen size={14} className="text-blue-600" />
+                    </div>
+                    <div className="flex flex-col">
+                      <p className="text-sm font-medium text-luxury-text leading-tight">Project created successfully</p>
+                      <p className="text-xs text-secondary mt-1">"Marketing Landing Page V2" is now ready.</p>
+                      <p className="text-[10px] text-slate-400 font-medium mt-2">2 hours ago</p>
+                    </div>
+                  </div>
+
+                  {/* Notification 3 */}
+                  <div className="p-4 hover:bg-slate-50 transition-colors cursor-pointer flex gap-3">
+                    <div className="w-8 h-8 rounded-full bg-purple-100 flex items-center justify-center shrink-0">
+                      <Settings size={14} className="text-purple-600" />
+                    </div>
+                    <div className="flex flex-col">
+                      <p className="text-sm font-medium text-luxury-text leading-tight">API connected</p>
+                      <p className="text-xs text-secondary mt-1">Successfully established connection to main data pipeline.</p>
+                      <p className="text-[10px] text-slate-400 font-medium mt-2">Yesterday</p>
+                    </div>
+                  </div>
+
+                </div>
+                <div className="p-3 border-t border-border-soft bg-slate-50/50 text-center cursor-pointer hover:bg-slate-100 transition-colors">
+                  <span className="text-xs font-bold text-luxury-blue">Mark all as read</span>
+                </div>
+              </div>
+            )}
             
             <div className="h-10 w-[1px] bg-slate-200" />
             
