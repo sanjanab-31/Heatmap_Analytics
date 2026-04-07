@@ -2,9 +2,11 @@ require("dotenv").config();
 
 const cors = require("cors");
 const express = require("express");
+const mongoose = require("mongoose");
 
 const app = express();
 const port = Number(process.env.PORT) || 3000;
+const mongoUri = process.env.MONGODB_URI;
 
 const allowedOrigins = (process.env.ALLOWED_ORIGINS || "")
 	.split(",")
@@ -64,6 +66,51 @@ app.use((err, _req, res, _next) => {
 	res.status(statusCode).json({ error: message });
 });
 
-app.listen(port, () => {
-	console.log(`Heatmap backend listening on port ${port}`);
+mongoose.connection.on("connected", () => {
+	console.log("MongoDB connected");
+});
+
+mongoose.connection.on("disconnected", () => {
+	console.warn("MongoDB disconnected; mongoose will continue attempting to reconnect");
+});
+
+mongoose.connection.on("error", (error) => {
+	console.error("MongoDB connection error:", error.message);
+});
+
+const wait = (ms) => new Promise((resolve) => {
+	setTimeout(resolve, ms);
+});
+
+const connectToMongoWithRetry = async () => {
+	if (!mongoUri) {
+		throw new Error("MONGODB_URI is required in environment variables");
+	}
+
+	let retryDelayMs = 2000;
+	const maxRetryDelayMs = 30000;
+
+	while (true) {
+		try {
+			await mongoose.connect(mongoUri);
+			return;
+		} catch (error) {
+			console.error(`MongoDB connect failed. Retrying in ${retryDelayMs}ms`);
+			await wait(retryDelayMs);
+			retryDelayMs = Math.min(retryDelayMs * 2, maxRetryDelayMs);
+		}
+	}
+};
+
+const startServer = async () => {
+	await connectToMongoWithRetry();
+
+	app.listen(port, () => {
+		console.log(`Heatmap backend listening on port ${port}`);
+	});
+};
+
+startServer().catch((error) => {
+	console.error("Failed to start server:", error.message);
+	process.exit(1);
 });
